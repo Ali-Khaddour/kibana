@@ -15,25 +15,23 @@ export timestamp=$(date +"%Y-%m-%dT%H:%M:00Z")
 export TIME_STAMP=${timestamp}
 
 echo "--- Download previous git sha"
-.buildkite/scripts/steps/code_coverage/ingest/downloadPrevSha.sh
+.buildkite/scripts/steps/code_coverage/reporting/downloadPrevSha.sh
 previousSha=$(cat downloaded_previous.txt)
-echo "previousSha = ${previousSha}"
 
 echo "--- Upload new git sha"
-.buildkite/scripts/steps/code_coverage/ingest/uploadPrevSha.sh
+.buildkite/scripts/steps/code_coverage/reporting/uploadPrevSha.sh
 
 .buildkite/scripts/bootstrap.sh
-#node scripts/build_kibana_platform_plugins.js --no-cache
  
 echo "--- Download coverage arctifacts"
 buildkite-agent artifact download target/kibana-coverage/jest/* . --build "${KIBANA_BUILD_ID:-$BUILDKITE_BUILD_ID}"
 buildkite-agent artifact download target/kibana-coverage/functional/* . --build "${KIBANA_BUILD_ID:-$BUILDKITE_BUILD_ID}"
 
 echo "--- process HTML Links"
-.buildkite/scripts/steps/code_coverage/ingest/prokLinks.sh
+.buildkite/scripts/steps/code_coverage/reporting/prokLinks.sh
 
 echo "--- collect VCS Info"
-.buildkite/scripts/steps/code_coverage/ingest/collectVcsInfo.sh
+.buildkite/scripts/steps/code_coverage/reporting/collectVcsInfo.sh
 
 # replace path in json files and generate final reports
 echo "--- Replace path in json files"
@@ -54,11 +52,7 @@ tar -czf target/kibana-coverage/jest/kibana-jest-coverage.tar.gz target/kibana-c
 tar -czf target/kibana-coverage/functional/kibana-functional-coverage.tar.gz target/kibana-coverage/functional-combined
 
 echo "--- Upload coverage static site"
-.buildkite/scripts/steps/code_coverage/ingest/uploadStaticSite.sh
+.buildkite/scripts/steps/code_coverage/reporting/uploadStaticSite.sh
 
 echo "--- Ingest results to Kibana stats cluster"
-#export NODE_ENV=test
-
-ls -la src/dev/code_coverage/ingest_coverage/team_assignment
-
-.buildkite/scripts/steps/code_coverage/ingest/ingestData.sh 'elastic+kibana+code-coverage' ${BUILDKITE_BUILD_ID} ${BUILDKITE_BUILD_URL} ${previousSha} 'src/dev/code_coverage/ingest_coverage/team_assignment/team_assignments.txt'
+.buildkite/scripts/steps/code_coverage/reporting/ingestData.sh 'elastic+kibana+code-coverage' ${BUILDKITE_BUILD_ID} ${BUILDKITE_BUILD_URL} ${previousSha} 'src/dev/code_coverage/ingest_coverage/team_assignment/team_assignments.txt'
