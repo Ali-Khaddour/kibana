@@ -1,0 +1,7 @@
+{
+  "prefix": "scheduledReports",
+  "paths": {
+    "scheduledReports": "."
+  },
+  "translations": ["translations/ja-JP.json"]
+}

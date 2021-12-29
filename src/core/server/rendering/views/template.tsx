@@ -36,7 +36,7 @@ export const Template: FunctionComponent<Props> = ({
         <meta charSet="utf-8" />
         <meta httpEquiv="X-UA-Compatible" content="IE=edge,chrome=1" />
         <meta name="viewport" content="width=device-width" />
-        <title>Elastic</title>
+        <title>Tracking Data Analyzer</title>
         <Fonts themeVersion={themeVersion} url={uiPublicUrl} />
         {/* The alternate icon is a fallback for Safari which does not yet support SVG favicons */}
         <link rel="alternate icon" type="image/png" href={`${uiPublicUrl}/favicons/favicon.png`} />
@@ -66,13 +66,20 @@ export const Template: FunctionComponent<Props> = ({
               className="kbnWelcomeText"
               data-error-message={i18n('core.ui.welcomeErrorMessage', {
                 defaultMessage:
-                  'Elastic did not load properly. Check the server output for more information.',
+                  'Tracking Data Analyzer did not load properly. Check the server output for more information.',
               })}
             >
-              {i18n('core.ui.welcomeMessage', { defaultMessage: 'Loading Elastic' })}
+              {i18n('core.ui.welcomeMessage', { defaultMessage: 'Loading Tracking Data Analyzer' })}
             </div>
             <div className="kbnProgress" />
           </div>
+          <span className='powered-by' style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "30px", marginTop: "30px", color: "#69707D", position: "fixed", bottom: "0" }}>
+            Powered By
+            <a href="https://www.safee.xyz/" target='_blank' style={{ paddingLeft: "5px" }}>
+              Safee Tracking
+              <span style={{ fontSize: "16px", paddingLeft: "2px" }}>&trade;</span>
+            </a>
+          </span>
         </div>
 
         <div className="kbnWelcomeView" id="kbn_legacy_browser_error" style={{ display: 'none' }}>
@@ -86,7 +93,7 @@ export const Template: FunctionComponent<Props> = ({
           <div className="kbnWelcomeText">
             {i18n('core.ui.legacyBrowserMessage', {
               defaultMessage:
-                'This Elastic installation has strict security requirements enabled that your current browser does not meet.',
+                'This Tracking Data Analyzer installation has strict security requirements enabled that your current browser does not meet.',
             })}
           </div>
         </div>

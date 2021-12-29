@@ -57,9 +57,14 @@ const TopNav = ({
   const { setHeaderActionMenu, visualizeCapabilities } = services;
   const { embeddableHandler, vis } = visInstance;
   const [inspectorSession, setInspectorSession] = useState<OverlayRef>();
+  const [schedulerSession, setSchedulerSession] = useState<OverlayRef>();
   const openInspector = useCallback(() => {
     const session = embeddableHandler.openInspector();
     setInspectorSession(session);
+  }, [embeddableHandler]);
+  const openScheduler = useCallback(() => {
+    const session = embeddableHandler.openScheduler();
+    setSchedulerSession(session);
   }, [embeddableHandler]);
 
   const doReload = useCallback(async () => {
@@ -86,6 +91,7 @@ const TopNav = ({
           setHasUnsavedChanges,
           hasUnappliedChanges,
           openInspector,
+          openScheduler,
           originatingApp,
           setOriginatingApp,
           visInstance,
@@ -103,6 +109,7 @@ const TopNav = ({
     setHasUnsavedChanges,
     hasUnappliedChanges,
     openInspector,
+    openScheduler,
     originatingApp,
     visInstance,
     setOriginatingApp,
