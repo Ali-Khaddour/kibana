@@ -25,7 +25,7 @@ import {
 } from '@elastic/eui';
 
 import { InternalApplicationStart } from '../../../application';
-import { GITHUB_CREATE_ISSUE_LINK, KIBANA_FEEDBACK_LINK } from '../../constants';
+import { GITHUB_CREATE_ISSUE_LINK, KIBANA_FEEDBACK_LINK, ABOUT_US_SAFEE_LINK } from '../../constants';
 import { ChromeHelpExtension } from '../../types';
 import { HeaderExtension } from './header_extension';
 import { isModifiedOrPrevented } from './nav_link';
@@ -211,6 +211,20 @@ export class HeaderHelpMenu extends Component<Props, State> {
 
     return (
       <Fragment>
+        <EuiButtonEmpty
+          href={ABOUT_US_SAFEE_LINK}
+          target="_blank"
+          size="s"
+          flush="left"
+        >
+          <FormattedMessage
+            id="core.ui.chrome.headerGlobalNav.helpMenuKibanaAboutUs"
+            defaultMessage="About Us"
+          />
+        </EuiButtonEmpty>
+
+        <EuiSpacer size="xs" />
+
         <EuiButtonEmpty href={kibanaDocLink} target="_blank" size="s" flush="left">
           <FormattedMessage
             id="core.ui.chrome.headerGlobalNav.helpMenuKibanaDocumentationTitle"

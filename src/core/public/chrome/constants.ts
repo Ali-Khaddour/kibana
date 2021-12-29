@@ -11,3 +11,4 @@ export const KIBANA_FEEDBACK_LINK =
 export const KIBANA_ASK_ELASTIC_LINK =
   'https://www.elastic.co/products/kibana/ask-elastic?blade=kibanaaskelastic';
 export const GITHUB_CREATE_ISSUE_LINK = 'https://github.com/elastic/kibana/issues/new/choose';
+export const ABOUT_US_SAFEE_LINK = "https://www.safee.xyz/our-company/";

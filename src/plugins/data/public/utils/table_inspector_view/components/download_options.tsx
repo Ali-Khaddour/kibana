@@ -99,8 +99,98 @@ class DataDownloadOptions extends Component<DataDownloadOptionsProps, DataDownlo
     }
   };
 
+  createExcel = (
+    columns: {
+      header: string;
+      key: string;
+    }[],
+    rows: string[][]
+  ) => {
+    const ExcelJS = require('exceljs');
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = 'Safee Tracking';
+    workbook.lastModifiedBy = 'Safee Tracking';
+    workbook.created = new Date();
+    workbook.modified = new Date();
+    workbook.lastPrinted = new Date();
+    const worksheet = workbook.addWorksheet('report');
+
+    worksheet.columns = columns;
+    worksheet.addRows(rows);
+    workbook.xlsx.writeBuffer().then(function (data: Blob) {
+      const blob = new Blob([data], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+      const url = window.URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = 'download.xls';
+      anchor.click();
+      window.URL.revokeObjectURL(url);
+    });
+  };
+
+  downloadExcel = () => {
+    //todo: support multy datatables download
+    if (this.props.datatables.length > 1) {
+      alert('Downloading multi-dataTables visualizations is not supported yet!');
+      return;
+    }
+    let filename = `${this.props.title}`;
+    if (!filename || filename.length === 0) {
+      filename = i18n.translate('data.inspector.table.downloadOptionsUnsavedFilename', {
+        defaultMessage: 'unsaved',
+      });
+    }
+    let head: {
+      header: string;
+      key: string;
+    }[] = [];
+    let body = [];
+    const content = this.props.datatables.reduce<Record<string, { content: string; type: string }>>(
+      (memo, datatable, i) => {
+        // skip empty datatables
+        if (datatable) {
+          const postFix = this.props.datatables.length > 1 ? `-${i + 1}` : '';
+
+          memo[`${filename}${postFix}.xlsx`] = {
+            content: datatableToCSV(datatable, {
+              csvSeparator: this.props.uiSettings.get('csv:separator', ';'),
+              quoteValues: this.props.uiSettings.get('csv:quoteValues', false),
+              formatFactory: this.props.fieldFormats.deserialize,
+              escapeFormulaValues: false,
+            }),
+            type: CSV_MIME_TYPE,
+          };
+        }
+        return memo;
+      },
+      {}
+    );
+    const rowLines = content[`${filename}.xlsx`].content.split('\r\n');
+    if (rowLines.length < 2) {
+      alert('No data found. Please extand the time range!');
+      return;
+    }
+    let lines: string[][] = [];
+    for (let i = 0; i < rowLines.length; i++) {
+      lines[i] = rowLines[i].split(';');
+    }
+    for (let i = 0; i < lines[0].length; i++) {
+      head.push({ header: lines[0][i], key: lines[0][i] });
+    }
+    for (let i = 1; i < lines.length; i++) {
+      body.push(lines[i]);
+    }
+    this.createExcel(head, body);
+  };
+
   exportFormattedCsv = () => {
     this.exportCsv(true);
+  };
+
+  exportExcel = () => {
+    this.downloadExcel();
   };
 
   exportFormattedAsRawCsv = () => {
@@ -112,8 +202,8 @@ class DataDownloadOptions extends Component<DataDownloadOptionsProps, DataDownlo
     const button = (
       <EuiButton iconType="arrowDown" iconSide="right" size="s" onClick={this.onTogglePopover}>
         <FormattedMessage
-          id="data.inspector.table.downloadCSVToggleButtonLabel"
-          defaultMessage="Download CSV"
+          id="data.inspector.table.downloadToggleButtonLabel"
+          defaultMessage="Download"
         />
       </EuiButton>
     );
@@ -132,6 +222,19 @@ class DataDownloadOptions extends Component<DataDownloadOptionsProps, DataDownlo
     );
 
     const items = [
+      <EuiContextMenuItem
+        key="excel"
+        onClick={this.exportExcel}
+        toolTipContent={
+          <FormattedMessage
+            id="data.inspector.table.excelButtonTooltip"
+            defaultMessage="Download the data in excel file"
+          />
+        }
+        toolTipPosition="left"
+      >
+        <FormattedMessage id="data.inspector.table.excelButtonLabel" defaultMessage="Excel" />
+      </EuiContextMenuItem>,
       <EuiContextMenuItem
         key="csv"
         onClick={this.exportFormattedCsv}
