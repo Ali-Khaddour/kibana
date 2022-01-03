@@ -11,7 +11,7 @@ import {
   EuiButton,
   EuiFlexGroup,
   EuiFlexItem,
-  EuiIcon,
+  // EuiIcon,
   EuiSpacer,
   EuiText,
   EuiTitle,

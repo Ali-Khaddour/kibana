@@ -196,7 +196,7 @@ export class VisualizeEmbeddable
     });
   };
 
-  public getColumns = (aggs: AggConfig[] | undefined) => {
+  public getColumns = (aggs: any[]) => {
     if (!aggs) return [];
     let columns = [];
     for (let i = 0; i < aggs.length; i++) {
