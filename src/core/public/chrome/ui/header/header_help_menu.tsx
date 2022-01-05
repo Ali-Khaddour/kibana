@@ -205,6 +205,10 @@ export class HeaderHelpMenu extends Component<Props, State> {
     );
   }
 
+  showAboutUs = () => {
+    document.getElementById('aboutus')?.classList.replace('hide-aboutus', 'show-aboutus')
+  }
+
   private renderDefaultContent() {
     const { kibanaDocLink } = this.props;
     const { helpSupportUrl } = this.state;
@@ -212,7 +216,7 @@ export class HeaderHelpMenu extends Component<Props, State> {
     return (
       <Fragment>
         <EuiButtonEmpty
-          href={ABOUT_US_SAFEE_LINK}
+          onClick={() => {this.showAboutUs()}}
           target="_blank"
           size="s"
           flush="left"

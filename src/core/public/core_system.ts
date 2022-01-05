@@ -223,6 +223,48 @@ export class CoreSystem {
 
       // ensure the rootDomElement is empty
       this.rootDomElement.textContent = '';
+      var aboutus = document.createElement('div');
+      aboutus.id = "aboutus";
+      aboutus.classList.add("hide-aboutus");
+
+      var aboutus_content = document.createElement('div');
+      aboutus_content.classList.add('aboutus_content')
+      var close_btn = document.createElement('span');
+      close_btn.innerHTML = 'X';
+      close_btn.classList.add('close_btn')
+      close_btn.onclick = () => {
+        aboutus.classList.replace('show-aboutus', 'hide-aboutus')
+      }
+      var powered_by = document.createElement('span');
+      powered_by.innerHTML = "Powered by";
+      var poweredby_logo = document.createElement('div');
+      poweredby_logo.classList.add('poweredby_logo');
+      var links = document.createElement('div')
+      links.classList.add('links');
+      var safee_linkedin = document.createElement('a');
+      safee_linkedin.classList.add('safee_linkedin');
+      safee_linkedin.href = 'https://www.linkedin.com/company/safee-tracking-system/'
+      var safee_fb = document.createElement('a');
+      safee_fb.classList.add('safee_fb');
+      safee_fb.href = 'https://www.facebook.com/SafeeTrackingSystem'
+      var safee_mail = document.createElement('a');
+      safee_mail.classList.add('safee_mail');
+      safee_mail.href = 'mailto:support@safee.xyz'
+      var safee_site = document.createElement('a');
+      safee_site.classList.add('safee_site');
+      safee_site.href = 'https://www.safee.xyz/'
+      aboutus_content.appendChild(close_btn)
+      links.appendChild(safee_linkedin)
+      links.appendChild(safee_fb)
+      links.appendChild(safee_mail)
+      links.appendChild(safee_site)
+
+      aboutus_content.appendChild(powered_by);
+      aboutus_content.appendChild(poweredby_logo);
+      aboutus_content.appendChild(links);
+
+      aboutus.appendChild(aboutus_content)
+      this.rootDomElement.appendChild(aboutus);
       this.rootDomElement.classList.add('coreSystemRootDomElement');
       this.rootDomElement.appendChild(coreUiTargetDomElement);
       this.rootDomElement.appendChild(notificationsTargetDomElement);
