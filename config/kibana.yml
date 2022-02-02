@@ -122,7 +122,7 @@ elasticsearch.hosts: ['http://localhost:9200']
 
 monitoring.ui.container.elasticsearch.enabled: true 
 
-elasticsearch.username: ali 
+elasticsearch.username: ali
 
 elasticsearch.password: qwe123
 

@@ -17,4 +17,22 @@ export function registerScriptsRoute(router: IRouter) {
       });
     }
   );
+
+  router.get(
+    { path: `/newterms/{id}`, validate: false },
+    async (context, request, response) => {
+      const data = await context.core.elasticsearch.client.asInternalUser.search({
+        index: "newterms",
+        body: {
+          query: {
+            match_all: {},
+          },
+          size: 1000,
+        },
+      });
+      return response.ok({
+        body: data,
+      });
+    }
+  );
 }

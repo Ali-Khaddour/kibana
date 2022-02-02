@@ -136,10 +136,108 @@ export const handleRequest = ({
                 ? { from: parsedTimeRange.min, to: parsedTimeRange.max, timeFields: allTimeFields }
                 : undefined,
             };
-
-            return tabifyAggResponse(aggs, response, tabifyParams);
+            let tableContent = tabifyAggResponse(aggs, response, tabifyParams)
+            
+            let dataList: string[][] = [];
+            let isConditionEnabled = window.sessionStorage.getItem('isConditionEnabled')
+            if(isConditionEnabled && JSON.parse(isConditionEnabled) == true) {
+              let aggs = response?.aggregations;
+              for (let key in aggs) {
+                getData(aggs[key], [], key, dataList, 0);
+              }
+              window.sessionStorage.setItem('customTableData', JSON.stringify(dataList))
+              tableContent.rows = getDataList(dataList);
+              
+              // tableContent.columns.push({
+              //   id: 'startTime',
+              //   name: 'Start Time',
+              //   meta: { type: 'string', params: {} },
+              // })
+              // tableContent.columns.push({
+              //   id: 'endTime',
+              //   name: 'End Time',
+              //   meta: { type: 'string', params: {} },
+              // })
+              // console.log(tableContent)
+            }
+            return tableContent;
           })
         )
     )
   );
 };
+
+function getData(object: any, row: Object[], agg: string, dataList: Object[][], ndx: number) {
+  try {
+    let buckets = object['buckets']; // json array
+    if (buckets) {
+      for (let i in buckets) {
+        let bucket = buckets[i];
+        let key: string = bucket['key'];
+        let newRow = [...row];
+        let objKey = `col-${ndx}-${agg.toString()}`;
+        let obj = {
+          [objKey]: key,
+        };
+        newRow.push(JSON.stringify(obj));
+        let lastBucket: boolean = true;
+        for (let property in bucket) {
+          if (bucket[property]['buckets']) {
+            lastBucket = false;
+            getData(bucket[property], newRow, property, dataList, ndx + 1);
+          }
+        }
+        if (lastBucket) {
+          for (let property in bucket) {
+            let value = bucket[property]['value'];
+            if (value) {
+              let key = property.toString();
+              let obj = {
+                [key]: value,
+              };
+              newRow.push(JSON.stringify(obj));
+            }
+          }
+          dataList.push(newRow);
+        }
+      }
+    }
+  } catch (e) {
+    console.log(e);
+  }
+}
+
+function getDataList(dataList: any[]): any {
+  if(dataList) {
+      if (dataList.length > 0) {
+          let result = [];
+          let dataListArr: any[] = dataList[0]; // stringify generates array inside array!
+          let firstPart: any = {};
+          for (let i = 0; i < dataListArr.length - 1; i++) {
+              let e: any = JSON.parse(dataListArr[i]);
+              let key = Object.keys(e)[0];
+              let value = e[key];
+              firstPart[key] = value;
+          };
+          let lastElement = JSON.parse(dataListArr[dataListArr.length - 1]).conditionalTerms[0];
+          for (let i = 0; i < lastElement.length; i++) {
+              result.push({ ...firstPart, ...lastElement[i]})
+          }
+          // if(result.length > 0) {
+          //     let keys = Object.keys(result[0]);
+          //     for(let i = 0; i < keys.length; i ++) {
+          //         columns.push({
+          //             id: keys[i]
+          //         })
+          //     }
+          //     columns.push({
+          //         id: "actions"
+          //     })
+          // }
+          return result;
+      }
+      else {
+          return [];
+      }
+  }
+}

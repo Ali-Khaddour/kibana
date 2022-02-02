@@ -227,7 +227,6 @@ export class AggConfig {
     if (!this.type) {
       return Promise.resolve();
     }
-
     return Promise.all(
       this.type.params.map((param: any) =>
         param.modifyAggConfigOnSearchRequestStart(this, searchSource, options)

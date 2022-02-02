@@ -85,7 +85,6 @@ export class Vis<TVisParams = VisParams> {
   public description: string = '';
   public params: TVisParams;
   public data: VisData = {};
-
   public readonly uiState: PersistedState;
 
   constructor(visType: string, visState: SerializedVis<TVisParams> = {} as any) {

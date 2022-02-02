@@ -30,6 +30,12 @@ import {
 } from './state';
 import type { AddSchema, ReorderAggs, DefaultEditorAggCommonProps } from '../agg_common_props';
 import type { EditorVisState } from './state/reducers';
+import { Conditions } from '../Conditions';
+
+interface IMetric { 
+  value: any; 
+  field: any;
+}
 
 export interface DefaultEditorDataTabProps {
   dispatch: React.Dispatch<EditorAction>;
@@ -42,6 +48,10 @@ export interface DefaultEditorDataTabProps {
   setValidity(modelName: string, value: boolean): void;
   setStateValue: DefaultEditorAggCommonProps['setStateParamValue'];
   timeRange: TimeRange;
+  conditions: any;
+  isConditionEnabled: boolean;
+  changeConditions: any;
+  enableConditions: any;
 }
 
 function DefaultEditorDataTab({
@@ -54,6 +64,10 @@ function DefaultEditorDataTab({
   setValidity,
   setStateValue,
   timeRange,
+  conditions,
+  isConditionEnabled,
+  changeConditions,
+  enableConditions
 }: DefaultEditorDataTabProps) {
   const lastParentPipelineAgg = useMemo(
     () =>
@@ -66,7 +80,9 @@ function DefaultEditorDataTab({
   const lastParentPipelineAggTitle =
     lastParentPipelineAgg && (lastParentPipelineAgg as IAggConfig).type.title;
 
-  const addSchema: AddSchema = useCallback((schema) => dispatch(addNewAgg(schema)), [dispatch]);
+  const addSchema: AddSchema = useCallback((schema) => {
+    dispatch(addNewAgg(schema))
+  }, [dispatch]);
 
   const onAggRemove: DefaultEditorAggCommonProps['removeAgg'] = useCallback(
     (aggId) => dispatch(removeAgg(aggId, schemas.all || [])),
@@ -84,7 +100,9 @@ function DefaultEditorDataTab({
   );
 
   const onAggTypeChange: DefaultEditorAggCommonProps['onAggTypeChange'] = useCallback(
-    (...props) => dispatch(changeAggType(...props)),
+    (...props) => {
+      dispatch(changeAggType(...props))
+    },
     [dispatch]
   );
 
@@ -109,24 +127,58 @@ function DefaultEditorDataTab({
     removeAgg: onAggRemove,
   } as any;
 
-  return (
-    <>
-      <DefaultEditorAggGroup
-        groupName={AggGroupNames.Metrics}
-        schemas={schemas.metrics}
-        {...commonProps}
-      />
+  if (state.type.name !== "table") {
+    return (
+      <>
+        <DefaultEditorAggGroup
+          groupName={AggGroupNames.Metrics}
+          schemas={schemas.metrics}
+          {...commonProps}
+        />
 
-      <EuiSpacer size="s" />
+        <EuiSpacer size="s" />
 
-      <DefaultEditorAggGroup
-        groupName={AggGroupNames.Buckets}
-        schemas={schemas.buckets}
-        timeRange={timeRange}
-        {...commonProps}
-      />
-    </>
-  );
+        <DefaultEditorAggGroup
+          groupName={AggGroupNames.Buckets}
+          schemas={schemas.buckets}
+          timeRange={timeRange}
+          {...commonProps}
+        />
+      </>
+    );
+  }
+  else {
+    return (
+      <>
+        <DefaultEditorAggGroup
+          groupName={AggGroupNames.Metrics}
+          schemas={schemas.metrics}
+          {...commonProps}
+        />
+
+        <EuiSpacer size="s" />
+        <DefaultEditorAggGroup
+          groupName={AggGroupNames.Buckets}
+          schemas={schemas.buckets}
+          timeRange={timeRange}
+          {...commonProps}
+        />
+
+        <EuiSpacer size="s" />
+
+        <Conditions
+          aggs={state.data.aggs?.aggs}
+          conditions={conditions}
+          isConditionEnabled={isConditionEnabled}
+          changeConditions={changeConditions}
+          enableConditions={enableConditions}
+        />
+
+        <EuiSpacer size="s" />
+      </>
+    );
+  }
+
 }
 
 export { DefaultEditorDataTab };

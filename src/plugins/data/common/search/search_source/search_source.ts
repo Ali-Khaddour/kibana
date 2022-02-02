@@ -370,13 +370,11 @@ export class SearchSource {
 
   private inspectSearch(s$: Observable<IKibanaSearchResponse<any>>, options: ISearchOptions) {
     const { id, title, description, adapter } = options.inspector || { title: '' };
-
     const requestResponder = adapter?.start(title, {
       id,
       description,
       searchSessionId: options.sessionId,
     });
-
     const trackRequestBody = () => {
       try {
         requestResponder?.json(this.getSearchRequestBody());
@@ -632,7 +630,7 @@ export class SearchSource {
     }
     return searchRequest;
   }
-
+  
   private getIndexType(index?: IIndexPattern) {
     return this.shouldOverwriteDataViewType ? this.overwriteDataViewType : index?.type;
   }
@@ -852,7 +850,6 @@ export class SearchSource {
       body.highlight = getHighlightRequest(getConfig(UI_SETTINGS.DOC_HIGHLIGHT));
       delete searchRequest.highlightAll;
     }
-
     return searchRequest;
   }
 

@@ -313,7 +313,6 @@ export class VisualizeEmbeddable
     if (this.vis.description && this.domNode) {
       this.domNode.setAttribute('data-description', this.vis.description);
     }
-
     return dirty;
   }
 
@@ -461,6 +460,7 @@ export class VisualizeEmbeddable
       inspectorAdapters: this.inspectorAdapters,
       executionContext: context,
     };
+
     if (this.abortController) {
       this.abortController.abort();
     }

@@ -33,6 +33,7 @@ import { setStateParamValue, useEditorReducer, useEditorFormState, discardChange
 import { DefaultEditorAggCommonProps } from '../agg_common_props';
 import { SidebarTitle } from './sidebar_title';
 import { useOptionTabs } from './use_option_tabs';
+import { createQuery } from '../utils/createScriptedMetric';
 
 interface DefaultEditorSideBarProps {
   embeddableHandler: VisualizeEmbeddableContract;
@@ -94,12 +95,44 @@ function DefaultEditorSideBarComponent({
     [dispatch, state.params]
   );
 
-  const applyChanges = useCallback(() => {
+  const [conditions, setConditions] = useState({
+    start: "",
+    end: ""
+  })
+
+  interface IMetric { 
+    value: any; 
+    field: any;
+  }
+  const [isConditionEnabled, setIsConditionEnabled] = useState(false)
+
+  const changeConditions = (conditions: any) => {
+    window.sessionStorage.setItem('conditions', JSON.stringify(conditions))
+    setConditions(conditions);
+  }
+
+  const enableConditions = () => {
+    window.sessionStorage.setItem('isConditionEnabled', JSON.stringify(!isConditionEnabled))
+    setIsConditionEnabled(!isConditionEnabled)
+  }
+
+  const applyCreateQuery = async () => {
+    let tmpMetrics: any[] = []
+    let tmpConditions = window.sessionStorage.getItem('conditions')
+    let conditionsToWuery = conditions
+    if(tmpConditions) {
+      conditionsToWuery = JSON.parse(tmpConditions)
+    }
+    await createQuery(conditionsToWuery, tmpMetrics, JSON.parse(JSON.stringify(state.data.aggs?.aggs)));
+  }
+
+  const applyChanges = useCallback(async () => {
+    await applyCreateQuery();
+
     if (formState.invalid || !isDirty) {
       setTouched(true);
       return;
     }
-
     vis.setState({
       ...vis.serialize(),
       params: state.params,
@@ -141,6 +174,17 @@ function DefaultEditorSideBarComponent({
     };
   }, [resetValidity, eventEmitter]);
 
+  useEffect(() => {
+    let isConditionEnabledTmp = window.sessionStorage.getItem('isConditionEnabled')
+    if(isConditionEnabledTmp) {
+      setIsConditionEnabled(JSON.parse(isConditionEnabledTmp))
+    }
+    let conditionsTmp = window.sessionStorage.getItem('conditions')
+    if(conditionsTmp) {
+      setConditions(JSON.parse(conditionsTmp))
+    }
+  }, []);
+
   // subscribe on external vis changes using browser history, for example press back button
   useEffect(() => {
     const resetHandler = () => dispatch(discardChanges(vis));
@@ -172,8 +216,9 @@ function DefaultEditorSideBarComponent({
     setValidity: setStateValidity,
     setTouched,
   };
+  
 
-  return (
+   return (
     <>
       <EuiFlexGroup
         className="visEditorSidebar"
@@ -212,6 +257,10 @@ function DefaultEditorSideBarComponent({
                   isTabSelected={isSelected}
                   {...(name === 'data' ? dataTabProps : optionTabProps)}
                   timeRange={timeRange}
+                  conditions={conditions}
+                  isConditionEnabled={isConditionEnabled}
+                  changeConditions={changeConditions}
+                  enableConditions={enableConditions}
                 />
               </div>
             ))}
