@@ -34,6 +34,7 @@ import { DefaultEditorAggCommonProps } from '../agg_common_props';
 import { SidebarTitle } from './sidebar_title';
 import { useOptionTabs } from './use_option_tabs';
 import { createQuery } from '../utils/createScriptedMetric';
+import { ConditionalType } from '@kbn/config-schema/target_types/types';
 
 interface DefaultEditorSideBarProps {
   embeddableHandler: VisualizeEmbeddableContract;
@@ -100,20 +101,23 @@ function DefaultEditorSideBarComponent({
     end: ""
   })
 
-  interface IMetric { 
-    value: any; 
-    field: any;
-  }
   const [isConditionEnabled, setIsConditionEnabled] = useState(false)
 
   const changeConditions = (conditions: any) => {
     window.sessionStorage.setItem('conditions', JSON.stringify(conditions))
     setConditions(conditions);
+    setDirty(true)
   }
 
   const enableConditions = () => {
     window.sessionStorage.setItem('isConditionEnabled', JSON.stringify(!isConditionEnabled))
     setIsConditionEnabled(!isConditionEnabled)
+    setDirty(true)
+  }
+
+  const changeEnableConditions = (val: boolean) => {
+    window.sessionStorage.setItem('isConditionEnabled', JSON.stringify(val))
+    setIsConditionEnabled(val)
   }
 
   const applyCreateQuery = async () => {
@@ -174,15 +178,58 @@ function DefaultEditorSideBarComponent({
     };
   }, [resetValidity, eventEmitter]);
 
+  const getConditionsFromES = (visId: string) => {
+    fetch(`/api/vis_conditions/${visId}`)
+        .then((response) => response.json())
+        .then((data) => {
+          let hits = data.body.hits.hits
+          if(hits.length > 0) {
+            changeEnableConditions(hits[0]._source.enabled)
+            changeConditions({
+              start: hits[0]._source.start,
+              end: hits[0]._source.end
+            })
+          }
+        });
+  }
+
   useEffect(() => {
+    let visId = window.sessionStorage.getItem('visId')
+    if(!visId) {
+      if(vis.id) {
+        visId = vis.id
+        // get conditions from ES
+        getConditionsFromES(vis.id);
+      }
+      else {
+        visId = 'not_set'
+      }
+      window.sessionStorage.setItem('visId', visId)
+    }
+    if(visId !== vis.id && vis.id) {
+      // changed the visualization
+      // get new conditions from ES
+      getConditionsFromES(vis.id);
+      window.sessionStorage.setItem('visId', vis.id)
+    }
     let isConditionEnabledTmp = window.sessionStorage.getItem('isConditionEnabled')
     if(isConditionEnabledTmp) {
       setIsConditionEnabled(JSON.parse(isConditionEnabledTmp))
+    }
+    else {
+      window.sessionStorage.setItem('isConditionEnabled', 'false')
     }
     let conditionsTmp = window.sessionStorage.getItem('conditions')
     if(conditionsTmp) {
       setConditions(JSON.parse(conditionsTmp))
     }
+    else {
+      window.sessionStorage.setItem('conditions', JSON.stringify(conditions))
+    }
+    if(conditionsTmp) {
+      createQuery(JSON.parse(conditionsTmp), [], JSON.parse(JSON.stringify(state.data.aggs?.aggs)))
+    }
+    // window.sessionStorage.setItem('id')
   }, []);
 
   // subscribe on external vis changes using browser history, for example press back button

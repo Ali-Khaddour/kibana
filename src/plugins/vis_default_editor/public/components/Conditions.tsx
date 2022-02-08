@@ -40,29 +40,20 @@ function Conditions(props: any) {
                 <EuiFormRow
                   label={stratText}
                   fullWidth
-                  helpText={
-                    <>
-
-                    </>
-                  }
                 >
-                  <EuiFieldText name="start" aria-label="Example" value={props.conditions.start} onChange={(e) => {
-                    props.changeConditions({
-                      start: e.target.value,
-                      end: props.conditions.end
-                    })
-                  }} />
+                  <EuiFieldText name="start" aria-label="Example" value={props.conditions.start}
+                    onChange={(e) => {
+                      props.changeConditions({
+                        start: e.target.value,
+                        end: props.conditions.end
+                      })
+                    }} />
                   {/* <ConditionsField /> */}
-                  
+
                 </EuiFormRow>
                 <EuiFormRow
                   label={endText}
                   fullWidth
-                  helpText={
-                    <>
-
-                    </>
-                  }
                 >
                   <EuiFieldText name="end" aria-label="Example" value={props.conditions.end} onChange={(e) => {
                     props.changeConditions({

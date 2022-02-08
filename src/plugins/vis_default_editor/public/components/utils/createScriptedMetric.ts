@@ -1,4 +1,5 @@
 let timeFields = ['messageTime', 'timestamp', 'alarms.fireTime']
+let arrayFields = ['geofences.keyword']
 
 const getNumOfBuckets = (aggs: any[]) => {
     let ctr = 0;
@@ -97,12 +98,12 @@ export const createQuery = async (conditions: {start: string, end: string}, subM
     combineScript += "def endTime = Instant.ofEpochMilli(new Date().getTime());";
     subMetrics.forEach(metric => {
         if(timeFields.includes(metric.field)) {
-            combineScript += `def ${metric.value}_${metric.field}; `;
+            combineScript += `def ${metric.value}_${metric.field.replace(".", "_")}; `;
         }
         else {
-            combineScript += `def ${metric.value}_${metric.field} = 0.0; `;
+            combineScript += `def ${metric.value}_${metric.field.replace(".", "_")} = 0.0; `;
             if(metric.value === "avg") {
-                combineScript += `def ${metric.value}_sum_${metric.field} = 0.0; `;
+                combineScript += `def ${metric.value}_sum_${metric.field.replace(".", "_")} = 0.0; `;
             }
         }
     });
@@ -113,15 +114,15 @@ export const createQuery = async (conditions: {start: string, end: string}, subM
     subMetrics.forEach(metric => {
         if(timeFields.includes(metric.field)) {
             if(metric.value === "min") {
-                start += `${metric.value}_${metric.field} = p.get('${metric.field}'); `;
+                start += `${metric.value}_${metric.field.replace(".", "_")} = p.get('${metric.field}'); `;
             }
         }
         
         else if(metric.value === "sum" || metric.value === "max" || metric.value === "min") {
-            start += `${metric.value}_${metric.field} = p.get('${metric.field}'); `;
+            start += `${metric.value}_${metric.field.replace(".", "_")} = p.get('${metric.field}'); `;
         }
         else if(metric.value === "avg") {
-            start += `${metric.value}_sum_${metric.field} = p.get('${metric.field}'); `;
+            start += `${metric.value}_sum_${metric.field.replace(".", "_")} = p.get('${metric.field}'); `;
         }
     });
     start += `inCondition = true; ctr = 1; startTime = p.get('messageTime')}`;
@@ -132,21 +133,21 @@ export const createQuery = async (conditions: {start: string, end: string}, subM
     subMetrics.forEach(metric => {
         if(timeFields.includes(metric.field)) {
             if(metric.value === "max") {
-                end += `${metric.value}_${metric.field} = p.get('${metric.field}'); `;
+                end += `${metric.value}_${metric.field.replace(".", "_")} = p.get('${metric.field}'); `;
             }
         }
         else if(metric.value === "sum") {
-            end += `${metric.value}_${metric.field} += p.get('${metric.field}'); `;
+            end += `${metric.value}_${metric.field.replace(".", "_")} += p.get('${metric.field}'); `;
         }
         else if(metric.value === "max") {
-            end += `${metric.value}_${metric.field} = Math.max(${metric.value}_${metric.field}, p.get('${metric.field}')); `;
+            end += `${metric.value}_${metric.field.replace(".", "_")} = Math.max(${metric.value}_${metric.field.replace(".", "_")}, p.get('${metric.field}')); `;
         }
         else if(metric.value === "min") {
-            end += `${metric.value}_${metric.field} = Math.min(${metric.value}_${metric.field}, p.get('${metric.field}')); `;
+            end += `${metric.value}_${metric.field.replace(".", "_")} = Math.min(${metric.value}_${metric.field.replace(".", "_")}, p.get('${metric.field}')); `;
         }
         else if(metric.value === "avg") {
-            end += `${metric.value}_sum_${metric.field} += p.get('${metric.field}'); `;
-            end += `${metric.value}_${metric.field} = avg_sum_${metric.field} / ctr; `;
+            end += `${metric.value}_sum_${metric.field.replace(".", "_")} += p.get('${metric.field}'); `;
+            end += `${metric.value}_${metric.field.replace(".", "_")} = avg_sum_${metric.field.replace(".", "_")} / ctr; `;
         }
         else {
             // raise error
@@ -156,7 +157,7 @@ export const createQuery = async (conditions: {start: string, end: string}, subM
     // todo: change next line
     end += `map['plateNo.keyword'] = p.get('plateNo.keyword');`;
     subMetrics.forEach(metric => {
-        end += `map['${metric.id}'] = ${metric.value}_${metric.field}; `;
+        end += `map['${metric.id}'] = ${metric.value}_${metric.field.replace(".", "_")}; `;
     });
     end += `map['startTime'] = startTime.toString(); `;
     end += `map['endTime'] = endTime.toString(); `;
@@ -170,16 +171,16 @@ export const createQuery = async (conditions: {start: string, end: string}, subM
             // ignore
         }
         else if(metric.value === "sum") {
-            inbetween += `${metric.value}_${metric.field} += p.get('${metric.field}'); `;
+            inbetween += `${metric.value}_${metric.field.replace(".", "_")} += p.get('${metric.field}'); `;
         }
         else if(metric.value === "max") {
-            inbetween += `${metric.value}_${metric.field} = Math.max(${metric.value}_${metric.field}, p.get('${metric.field}')); `;
+            inbetween += `${metric.value}_${metric.field.replace(".", "_")} = Math.max(${metric.value}_${metric.field.replace(".", "_")}, p.get('${metric.field}')); `;
         }
         else if(metric.value === "min") {
-            inbetween += `${metric.value}_${metric.field} = Math.min(${metric.value}_${metric.field}, p.get('${metric.field}')); `;
+            inbetween += `${metric.value}_${metric.field.replace(".", "_")} = Math.min(${metric.value}_${metric.field.replace(".", "_")}, p.get('${metric.field}')); `;
         }
         else if(metric.value === "avg") {
-            inbetween += `${metric.value}_sum_${metric.field} += p.get('${metric.field}'); `;
+            inbetween += `${metric.value}_sum_${metric.field.replace(".", "_")} += p.get('${metric.field}'); `;
         }
     });
     inbetween += " ctr += 1; "

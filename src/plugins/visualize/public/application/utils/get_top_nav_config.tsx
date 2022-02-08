@@ -482,6 +482,39 @@ export const getTopNavConfig = (
                 if (!response.id || response.error) {
                   savedVis.title = currentTitle;
                 }
+                else {
+                  // save conditions
+                  let enabledStr = window.sessionStorage.getItem('isConditionEnabled')
+                  let conditionsStr = window.sessionStorage.getItem('conditions')
+                  let enabled = false
+                  let conditions = {
+                    start: "",
+                    end: ""
+                  }
+                  if(enabledStr) {
+                    enabled = JSON.parse(enabledStr)
+                  }
+                  if(conditionsStr) {
+                    conditions = JSON.parse(conditionsStr)
+                  }
+                  const requestOptions = {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'kbn-xsrf': 'true' },
+                    body: JSON.stringify({
+                      id: response.id,
+                      enabled,
+                      start: conditions.start,
+                      end: conditions.end
+                    }),
+                  };
+                  fetch('/api/vis_conditions/put', requestOptions).then((response) => {
+                    if (response.ok) {
+                      console.log(response)
+                    } else {
+                      console.log(response)
+                    }
+                  });
+                }
 
                 return response;
               };
