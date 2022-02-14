@@ -484,19 +484,24 @@ export const getTopNavConfig = (
                 }
                 else {
                   // save conditions
-                  let enabledStr = window.sessionStorage.getItem('isConditionEnabled')
-                  let conditionsStr = window.sessionStorage.getItem('conditions')
+                  let enabledStr = window.sessionStorage.getItem(response.id + '_isConditionEnabled')
+                  let conditionsStr = window.sessionStorage.getItem(response.id + '_conditions')
+                  let visconditionStr = window.sessionStorage.getItem(response.id + '_viscondition')
                   let enabled = false
                   let conditions = {
                     start: "",
                     end: ""
                   }
+                  // let viscondition = null
                   if(enabledStr) {
                     enabled = JSON.parse(enabledStr)
                   }
                   if(conditionsStr) {
                     conditions = JSON.parse(conditionsStr)
                   }
+                  // if(visconditionStr) {
+                  //   viscondition = JSON.parse(visconditionStr)
+                  // }
                   const requestOptions = {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json', 'kbn-xsrf': 'true' },
@@ -504,7 +509,8 @@ export const getTopNavConfig = (
                       id: response.id,
                       enabled,
                       start: conditions.start,
-                      end: conditions.end
+                      end: conditions.end,
+                      viscondition: visconditionStr
                     }),
                   };
                   fetch('/api/vis_conditions/put', requestOptions).then((response) => {

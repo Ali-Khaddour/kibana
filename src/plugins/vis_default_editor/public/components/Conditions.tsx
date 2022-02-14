@@ -5,8 +5,8 @@ function Conditions(props: any) {
   var bucketsError = false;
   var stratText = "Start"
   var endText = "End"
-  console.log(props.aggs)
-  console.log(props.conditions)
+  // console.log(props.aggs)
+  // console.log(props.conditions)
   return (
     <EuiDragDropContext onDragEnd={() => alert("drag ended")}>
       <EuiPanel data-test-subj={`AggGroup`} paddingSize="s">

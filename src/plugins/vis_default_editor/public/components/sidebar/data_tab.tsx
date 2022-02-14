@@ -32,11 +32,6 @@ import type { AddSchema, ReorderAggs, DefaultEditorAggCommonProps } from '../agg
 import type { EditorVisState } from './state/reducers';
 import { Conditions } from '../Conditions';
 
-interface IMetric { 
-  value: any; 
-  field: any;
-}
-
 export interface DefaultEditorDataTabProps {
   dispatch: React.Dispatch<EditorAction>;
   formIsTouched: boolean;

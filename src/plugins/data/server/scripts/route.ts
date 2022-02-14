@@ -58,7 +58,8 @@ export function registerScriptsRoute(router: IRouter) {
           id: schema.any(),
           enabled: schema.any(),
           start: schema.any(),
-          end: schema.any()
+          end: schema.any(),
+          viscondition: schema.any(),
         }),
       },
     },

@@ -95,6 +95,7 @@ export function getEsaggs({
     getStartDependencies: async () => {
       const [, , self] = await getStartServices();
       const { indexPatterns, search, nowProvider } = self;
+      // console.log(search)
       return {
         aggs: search.aggs,
         indexPatterns,

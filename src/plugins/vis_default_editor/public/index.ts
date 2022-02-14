@@ -10,6 +10,7 @@
 /* eslint-disable @kbn/eslint/no_export_all */
 
 import { PluginInitializerContext } from 'kibana/public';
+export { createQuery } from './components/utils/createScriptedMetric';
 import { DefaultEditorController } from './default_editor_controller';
 import { VisDefaultEditorPlugin } from './plugin';
 
@@ -24,4 +25,4 @@ export * from './utils';
 
 export const plugin = (context: PluginInitializerContext) => {
   return new VisDefaultEditorPlugin();
-};
+}; 

@@ -291,7 +291,7 @@ export class SearchSource {
    */
   fetch$(
     options: ISearchOptions = {}
-  ): Observable<IKibanaSearchResponse<estypes.SearchResponse<any>>> {
+    ): Observable<IKibanaSearchResponse<estypes.SearchResponse<any>>> {
     const { getConfig } = this.dependencies;
     const syncSearchByDefault = getConfig(UI_SETTINGS.COURIER_BATCH_SEARCHES);
 
@@ -551,6 +551,7 @@ export class SearchSource {
     val: SearchSourceFields[K],
     key: K
   ) {
+    // alert(JSON.stringify(options))
     val = typeof val === 'function' ? val(this) : val;
     if (val == null || !key) return;
 
@@ -569,7 +570,6 @@ export class SearchSource {
     };
 
     const { getConfig } = this.dependencies;
-
     switch (key) {
       case 'filter':
         return addToRoot('filters', (data.filters || []).concat(val));

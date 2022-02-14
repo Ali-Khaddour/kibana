@@ -199,11 +199,18 @@ export class VisualizeEmbeddable
   public getColumns = (aggs: any[]) => {
     if (!aggs) return [];
     let columns = [];
+    // first add the buckets
     for (let i = 0; i < aggs.length; i++) {
+      if(aggs[i].schema === 'metric')
+        continue;
       let key = aggs[i].id.toString();
       let name = aggs[i].params?.customLabel;
       if (!name) {
-        name = aggs[i].params?.field?.spec?.name || '-';
+        let json = JSON.parse(JSON.stringify(aggs[i]))
+        name = ''
+        if(aggs[i].schema === 'metric' && json.type)
+          name = json.type + ' '
+        name += aggs[i].params?.field?.spec?.name || '-';
       }
       let type = aggs[i].params?.field?.spec?.type;
       if (!type) {
@@ -216,6 +223,31 @@ export class VisualizeEmbeddable
       };
       columns.push(obj);
     }
+    // add the buckets
+    for (let i = 0; i < aggs.length; i++) {
+      if(aggs[i].schema !== 'metric')
+        continue;
+      let key = aggs[i].id.toString();
+      let name = aggs[i].params?.customLabel;
+      if (!name) {
+        let json = JSON.parse(JSON.stringify(aggs[i]))
+        name = ''
+        if(aggs[i].schema === 'metric' && json.type)
+          name = json.type + ' '
+        name += aggs[i].params?.field?.spec?.name || '-';
+      }
+      let type = aggs[i].params?.field?.spec?.type;
+      if (!type) {
+        type = 'string';
+      }
+      let obj = {
+        key,
+        name,
+        type,
+      };
+      columns.push(obj);
+    }
+
     return columns;
   };
 

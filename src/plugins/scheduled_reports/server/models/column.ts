@@ -1,6 +1,5 @@
 export interface Column {
-    key: string;
-    name: string;
-    type: string;
-  }
-  
+  key: string;
+  name: string;
+  type: string;
+}

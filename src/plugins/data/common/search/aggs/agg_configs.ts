@@ -82,6 +82,12 @@ export class AggConfigs {
   public timeFields?: string[];
   public forceNow?: Date;
   public hierarchical?: boolean = false;
+  isConditionEnabled: boolean; 
+  conditions : {
+    start: string,
+    end: string
+  }
+  visCondition: string;
 
   private readonly typesRegistry: AggTypesRegistryStart;
 
@@ -101,6 +107,12 @@ export class AggConfigs {
     this.hierarchical = opts.hierarchical;
 
     configStates.forEach((params: any) => this.createAggConfig(params));
+    this.isConditionEnabled = false;
+    this.conditions = {
+      start: '',
+      end: ''
+    }
+    this.visCondition = ''
   }
 
   setTimeFields(timeFields: string[] | undefined) {
@@ -209,6 +221,18 @@ export class AggConfigs {
     return true;
   }
 
+  setIsConditionsEnabled(val: boolean): void {
+    this.isConditionEnabled = true;
+  }
+
+  setConditions(val: {start: string, end: string}) {
+    this.conditions = val;
+  }
+
+  setVisConditions(val: string) {
+    this.visCondition = val;
+  }
+
   toDsl(): Record<string, any> {
     const dslTopLvl = {};
     let dslLvlCursor: Record<string, any>;
@@ -239,13 +263,8 @@ export class AggConfigs {
     );
     let lastDSL: any;
     let lastID: string = "0";
-    let isConditionEnabledTmp = window.sessionStorage.getItem('isConditionEnabled')
-    let isConditionEnabled = false
-    if(isConditionEnabledTmp)
-      isConditionEnabled = JSON.parse(isConditionEnabledTmp)
-    let viscondition = window.sessionStorage.getItem('viscondition')
     requestAggs.forEach(async (config: AggConfig, i: number, list) => {
-      if(isConditionEnabled && config.schema === 'metric') {
+      if(this.isConditionEnabled && config.schema === 'metric') {
         // ignore the metric
       }
       else {
@@ -306,11 +325,10 @@ export class AggConfigs {
       }
     });
     
-    if(lastDSL && isConditionEnabled && viscondition)
+    if(lastDSL && this.isConditionEnabled && this.visCondition)
     {
-      lastDSL[lastID].aggs = JSON.parse(viscondition);
+      lastDSL[lastID].aggs = JSON.parse(this.visCondition);
     }
-
     removeParentAggs(dslTopLvl);
     return dslTopLvl;
   }
