@@ -41,12 +41,12 @@ const getConditionsFromES = async (visId: string | undefined): Promise<{ isCondi
     .then(async (data) => {
       let hits = data.body.hits.hits;
       if (hits.length > 0) {
-        window.sessionStorage.setItem(visId + '_isConditionEnabled', JSON.stringify(hits[0]._source.enabled));
+        window.sessionStorage.setItem(visId + '_isConditionEnabled', hits[0]._source.enabled);
         window.sessionStorage.setItem(visId + '_conditions', JSON.stringify({
           start: hits[0]._source.start,
           end: hits[0]._source.end
         }));
-        window.sessionStorage.setItem(visId + '_viscondition', JSON.stringify(hits[0]._source.viscondition));
+        window.sessionStorage.setItem(visId + '_viscondition', hits[0]._source.viscondition);
         return {
           isConditionEnabled: hits[0]._source.enabled,
           conditionsStart: hits[0]._source.start,

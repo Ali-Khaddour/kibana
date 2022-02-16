@@ -46,19 +46,8 @@ export function defineRoutes(router: IRouter, schedule: any, { security }: Plugi
         timeFilter: string;
       }[] = [];
       let ndx = 0;
-
-      data.hits.hits.forEach(
-        (element: {
-          _source: {
-            id: any;
-            title: any;
-            index: any;
-            duration: string;
-            durationUnit: string;
-            timeFilter: string;
-            timeFilterUnit: string;
-          };
-        }) => {
+      data.body.hits.hits.forEach(
+        (element: any) => {
           let newRow = {
             id: ndx + 1,
             visId: element._source.id,
