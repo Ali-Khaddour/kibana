@@ -265,7 +265,8 @@ export class VisualizeEmbeddable
 
     const request = JSON.stringify(adapters.requests?.getRequests()[0].json);
     const href = window.location.href;
-    const id = href.split('#')[1].split('/')[2].split('?')[0];
+    // const id = href.split('#')[1].split('/')[2].split('?')[0];
+    const id = this.vis.id || ''
     const index = this.vis.data.indexPattern?.title;
 
     localStorage.setItem('index', index ? index : '');
@@ -273,9 +274,14 @@ export class VisualizeEmbeddable
     localStorage.setItem('title', title);
     localStorage.setItem('request', request);
     localStorage.setItem('columns', columns);
-    history.push({
-      pathname: '/app/scheduledReports/create',
-    });
+    const linkWithSpaceRegExp = /\/s\/(.*)\/app/
+    const match = href.match(linkWithSpaceRegExp)
+    const linkWithSpace = match? match[0] : '/app'
+    if(id) {
+      history.push({
+        pathname: `${linkWithSpace}/scheduledReports/create`,
+      });
+    }
   };
 
   /**
