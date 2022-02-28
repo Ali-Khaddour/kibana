@@ -41,13 +41,17 @@ function Conditions(props: any) {
                   label={stratText}
                   fullWidth
                 >
-                  <EuiFieldText name="start" aria-label="Example" value={props.conditions.start}
+                  <EuiFieldText name="start" aria-label="Example" 
+                    value={props.conditions.start}
+                    disabled = {props.isConditionEnabled ? false : true}
                     onChange={(e) => {
                       props.changeConditions({
                         start: e.target.value,
                         end: props.conditions.end
                       })
-                    }} />
+                    }} 
+                    
+                    />
                   {/* <ConditionsField /> */}
 
                 </EuiFormRow>
@@ -60,7 +64,9 @@ function Conditions(props: any) {
                       start: props.conditions.start,
                       end: e.target.value
                     })
-                  }} />
+                  }} 
+                  disabled = {props.isConditionEnabled ? false : true}
+                  />
                 </EuiFormRow>
               </>
             </EuiDraggable>

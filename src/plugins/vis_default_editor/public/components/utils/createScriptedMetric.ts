@@ -190,6 +190,9 @@ export const createQuery = async (conditions: {start: string, end: string}, subM
                 if(metric.value === "min") {
                     start += `${metric.value}_${metric.field.replace(".", "_")} = p.get('${metric.field}'); `;
                 }
+                if(metric.value === "max") {
+                    start += `${metric.value}_${metric.field.replace(".", "_")} = p.get('${metric.field}'); `;
+                }
             }
             
             else if(metric.value === "sum" || metric.value === "max" || metric.value === "min") {

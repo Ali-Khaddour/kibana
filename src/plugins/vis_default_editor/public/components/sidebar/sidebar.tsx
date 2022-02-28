@@ -225,8 +225,10 @@ function DefaultEditorSideBarComponent({
     if (visId !== vis.id && vis.id) {
       // changed the visualization
       // get new conditions from ES
+
       getConditionsFromES(vis.id);
       window.sessionStorage.setItem('visId', vis.id)
+      visId = vis.id;
     }
     let isConditionEnabledTmp = window.sessionStorage.getItem((visId == 'not_set' ? '' : visId + '_') + 'isConditionEnabled')
     if (isConditionEnabledTmp) {
@@ -245,6 +247,7 @@ function DefaultEditorSideBarComponent({
     if (conditionsTmp) {
       createQuery(JSON.parse(conditionsTmp), [], JSON.parse(JSON.stringify(state.data.aggs?.aggs)), (visId == 'not_set' ? '' : visId + '_'))
     }
+    applyChanges();
     // window.sessionStorage.setItem('id')
   }, []);
 
