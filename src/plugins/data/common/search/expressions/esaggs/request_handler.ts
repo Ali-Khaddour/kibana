@@ -35,6 +35,31 @@ export interface RequestHandlerParams {
   executionContext?: KibanaExecutionContext;
 }
 
+const getConditionsFromES = async (visId: string | undefined): Promise<{ isConditionEnabled: boolean; conditionsStart: string; conditionsEnd: string; viscondition: string; } | null> => {
+  return fetch(`/api/vis_conditions/${visId}`)
+    .then((response) => response.json())
+    .then(async (data) => {
+      let hits = data.body.hits.hits;
+      if (hits.length > 0) {
+        window.sessionStorage.setItem(visId + '_isConditionEnabled', hits[0]._source.enabled);
+        window.sessionStorage.setItem(visId + '_conditions', JSON.stringify({
+          start: hits[0]._source.start,
+          end: hits[0]._source.end
+        }));
+        window.sessionStorage.setItem(visId + '_viscondition', hits[0]._source.viscondition);
+        return {
+          isConditionEnabled: hits[0]._source.enabled,
+          conditionsStart: hits[0]._source.start,
+          conditionsEnd: hits[0]._source.end,
+          viscondition: hits[0]._source.viscondition
+        };
+      }
+      else {
+        return null;
+      }
+    });
+}
+
 export const handleRequest = ({
   abortSignal,
   aggs,
@@ -107,6 +132,52 @@ export const handleRequest = ({
     requestSearchSource.setField('filter', filters);
     requestSearchSource.setField('query', query);
 
+
+    let isConditionEnabledTmp = null
+    let isConditionEnabled = false
+    let viscondition = null
+
+    if (executionContext?.id) {
+      isConditionEnabledTmp = window.sessionStorage.getItem(executionContext?.id + '_isConditionEnabled')
+      viscondition = window.sessionStorage.getItem(executionContext?.id + '_viscondition')
+      isConditionEnabled = false
+      if (isConditionEnabledTmp && viscondition) {
+        isConditionEnabled = JSON.parse(isConditionEnabledTmp)
+        aggs.isConditionEnabled = isConditionEnabled
+        aggs.visCondition = viscondition
+      }
+      else {
+        let conditionsFromES: {
+          isConditionEnabled: boolean;
+          conditionsStart: string;
+          conditionsEnd: string;
+          viscondition: string;
+        } | null = await getConditionsFromES(executionContext?.id)
+        if (conditionsFromES !== null) {
+          aggs.isConditionEnabled = conditionsFromES?.isConditionEnabled
+          aggs.conditions = {
+            start: conditionsFromES?.conditionsStart,
+            end: conditionsFromES?.conditionsEnd
+          }
+          aggs.visCondition = conditionsFromES?.viscondition
+        }
+      }
+    }
+    else if (!executionContext?.parent) {
+      // just a visualization
+      isConditionEnabledTmp = window.sessionStorage.getItem('isConditionEnabled')
+      isConditionEnabled = false
+      if (isConditionEnabledTmp)
+        isConditionEnabled = JSON.parse(isConditionEnabledTmp)
+      let conditions = window.sessionStorage.getItem('conditions')
+      viscondition = window.sessionStorage.getItem('viscondition')
+      if(isConditionEnabled) {
+        aggs.isConditionEnabled = isConditionEnabled
+        if(conditions) aggs.conditions = JSON.parse(conditions)
+        if(viscondition) aggs.visCondition = viscondition
+      }
+    }
+
     return { allTimeFields, forceNow, requestSearchSource };
   }).pipe(
     switchMap(({ allTimeFields, forceNow, requestSearchSource }) =>
@@ -136,10 +207,99 @@ export const handleRequest = ({
                 ? { from: parsedTimeRange.min, to: parsedTimeRange.max, timeFields: allTimeFields }
                 : undefined,
             };
+            let tableContent = tabifyAggResponse(aggs, response, tabifyParams)
 
-            return tabifyAggResponse(aggs, response, tabifyParams);
+            let dataList: string[][] = [];
+            let tmpVisId = executionContext?.id ? executionContext?.id + '_isConditionEnabled' : 'isConditionEnabled'
+            let isConditionEnabled = window.sessionStorage.getItem(tmpVisId)
+            if (isConditionEnabled && JSON.parse(isConditionEnabled) == true) {
+              let aggs = response?.aggregations;
+              for (let key in aggs) {
+                getData(aggs[key], [], key, dataList, 0);
+              }
+              window.sessionStorage.setItem('customTableData', JSON.stringify(dataList))
+              tableContent.rows = getDataList(dataList);
+            }
+            return tableContent;
           })
         )
     )
   );
 };
+
+function getData(object: any, row: Object[], agg: string, dataList: Object[][], ndx: number) {
+  try {
+    let buckets = object['buckets']; // json array
+    if (buckets) {
+      for (let i in buckets) {
+        let bucket = buckets[i];
+        let key: string = bucket['key'];
+        let newRow = [...row];
+        let objKey = `col-${ndx}-${agg.toString()}`;
+        let obj = {
+          [objKey]: key,
+        };
+        newRow.push(JSON.stringify(obj));
+        let lastBucket: boolean = true;
+        for (let property in bucket) {
+          if (bucket[property]['buckets']) {
+            lastBucket = false;
+            getData(bucket[property], newRow, property, dataList, ndx + 1);
+          }
+        }
+        if (lastBucket) {
+          for (let property in bucket) {
+            let value = bucket[property]['value'];
+            if (value) {
+              let key = property.toString();
+              let obj = {
+                [key]: value,
+              };
+              newRow.push(JSON.stringify(obj));
+            }
+          }
+          dataList.push(newRow);
+        }
+      }
+    }
+  } catch (e) {
+    console.log(e);
+  }
+}
+
+function getDataList(dataList: any[]): any {
+  if (dataList) {
+    if (dataList.length > 0) {
+      let result: any[] = [];
+      dataList.forEach(elem => {
+        let dataListArr: any[] = elem;
+        let firstPart: any = {};
+        for (let i = 0; i < dataListArr.length - 1; i++) {
+          let e: any = JSON.parse(dataListArr[i]);
+          let key = Object.keys(e)[0];
+          let value = e[key];
+          firstPart[key] = value;
+        };
+        let lastElement = JSON.parse(dataListArr[dataListArr.length - 1]).conditionalTerms[0];
+        for (let i = 0; i < lastElement.length; i++) {
+          result.push({ ...firstPart, ...lastElement[i] })
+        }
+      })
+      // if(result.length > 0) {
+      //     let keys = Object.keys(result[0]);
+      //     for(let i = 0; i < keys.length; i ++) {
+      //         columns.push({
+      //             id: keys[i]
+      //         })
+      //     }
+      //     columns.push({
+      //         id: "actions"
+      //     })
+      // }
+      return result;
+    }
+    else {
+      return [];
+    }
+  }
+}

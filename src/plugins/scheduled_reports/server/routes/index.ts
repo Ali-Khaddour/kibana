@@ -46,19 +46,8 @@ export function defineRoutes(router: IRouter, schedule: any, { security }: Plugi
         timeFilter: string;
       }[] = [];
       let ndx = 0;
-
-      data.hits.hits.forEach(
-        (element: {
-          _source: {
-            id: any;
-            title: any;
-            index: any;
-            duration: string;
-            durationUnit: string;
-            timeFilter: string;
-            timeFilterUnit: string;
-          };
-        }) => {
+      data.body.hits.hits.forEach(
+        (element: any) => {
           let newRow = {
             id: ndx + 1,
             visId: element._source.id,
@@ -127,15 +116,6 @@ export function defineRoutes(router: IRouter, schedule: any, { security }: Plugi
           id,
           body: report,
         });
-
-        // await context.core.elasticsearch.client.asCurrentUser.transport.request(
-        //   {
-        //     method: 'POST',
-        //     path: `/${companyId}-scheduled_reports/_doc/${id}`,
-        //     body: report,
-        //     querystring: {}
-        //   }
-        // );
       } catch (e) {
         console.log(e);
         return response.customError({
@@ -194,11 +174,6 @@ export function defineRoutes(router: IRouter, schedule: any, { security }: Plugi
 
       try {
         // delete docuemnt from ES
-        // await context.core.elasticsearch.legacy.client.callAsCurrentUser('delete', {
-        //   index: `${companyId}-scheduled_reports`,
-        //   refresh: true,
-        //   id: request.params.id,
-        // });
         await context.core.elasticsearch.client.asCurrentUser.delete({
           index: `${companyId}-scheduled_reports`,
           refresh: true,

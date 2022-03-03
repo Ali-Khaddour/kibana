@@ -54,7 +54,7 @@ export function formatTimestamp(timestamp) {
   return year + '/' + month + '/' + day + ' ' + hour + ':' + minute + ':' + second;
 }
 
-export function getData(object, row: Object[], agg: string, dataList: Object[][]) {
+export function getData(object, row: Object[], agg: string, dataList: Object[][], keys: string[]) {
   try {
     let buckets = object['buckets']; // json array
     if (buckets) {
@@ -66,21 +66,36 @@ export function getData(object, row: Object[], agg: string, dataList: Object[][]
         let obj = {
           [objKey]: key,
         };
-        newRow.push(JSON.stringify(obj));
+        if (keys.includes(objKey)) {
+          newRow.push(JSON.stringify(obj));
+        }
         let lastBucket: boolean = true;
         for (let property in bucket) {
           if (bucket[property]['buckets']) {
             lastBucket = false;
-            getData(bucket[property], newRow, property, dataList);
+            getData(bucket[property], newRow, property, dataList, keys);
           }
         }
         if (lastBucket) {
           for (let property in bucket) {
             let value = bucket[property]['value'];
-            if (value) {
+            if (value != null) {
               let key = property.toString();
               let obj = {
                 [key]: value,
+              };
+              if (keys.includes(key) || property === 'conditionalTerms') {
+                newRow.push(JSON.stringify(obj));
+              }
+            }
+          }
+          // todo: (for later) check for another SPECIAL CASES
+          if (keys.includes('doc_count')) {
+            let count = bucket['doc_count'];
+            if (count != null) {
+              let key = 'doc_count';
+              let obj = {
+                [key]: count,
               };
               newRow.push(JSON.stringify(obj));
             }
@@ -91,6 +106,59 @@ export function getData(object, row: Object[], agg: string, dataList: Object[][]
     }
   } catch (e) {
     console.log(e);
+  }
+}
+
+function checkForConditionalTerms(dataList: any[]) {
+  dataList.forEach(item => {
+    if (Object.keys(item).includes('conditionalTerms')) {
+      return true;
+    }
+  })
+  return false;
+}
+
+function expandRow(row) {
+  let newRow = []
+  let rowNoConditionalTerms = {}
+  let conditionalTermsNdx = -1
+
+  for(let i = 0; i < row.length; i ++) {
+    let tmpRow = JSON.parse(row[i]);
+    let keys = Object.keys(tmpRow);
+    if (keys[0] != 'conditionalTerms') {
+      // rowNoConditionalTerms.push({
+      //   [keys[0]]: tmpRow[keys[0]],
+      // })
+      rowNoConditionalTerms[keys[0]] = tmpRow[keys[0]]
+    }
+    else {
+      conditionalTermsNdx = i
+    }
+  }
+  
+  let regConTermExpression = /col-(.*)-(.*)/
+  if(conditionalTermsNdx != -1) {
+    let conTerms = JSON.parse(row[conditionalTermsNdx]).conditionalTerms[0];
+    for(let j = 0; j < conTerms.length; j ++) {
+      let conTermKeys = Object.keys(conTerms[j])
+      let rowWithConditionalTerms = {}
+      for(let i = 0; i < conTermKeys.length; i ++) {
+        let match = conTermKeys[i].match(regConTermExpression)
+        if(match) {
+          rowWithConditionalTerms[match[2]] = conTerms[j][conTermKeys[i]]
+          // rowWithConditionalTerms.push({
+          //   [match[2]]: conTerms[j][conTermKeys[i]]
+          // })
+        }
+      }
+      newRow.push({...rowNoConditionalTerms, ...rowWithConditionalTerms})
+    }
+    return newRow;
+  }
+  else {
+    newRow.push({...rowNoConditionalTerms})
+    return newRow;
   }
 }
 
@@ -112,36 +180,25 @@ export async function createExcel(
 
     const worksheet = workbook.addWorksheet('report');
 
-    let sortedColumns = [];
-    // get the right sort of the columns from the rows
-    if (dataList.length > 0) {
-      for (let i = 0; i < dataList[0].length; i++) {
-        let tmp = JSON.parse(dataList[0][i]);
-        for (let i in tmp) {
-          for (let j = 0; j < columns.length; j++) {
-            if (i == columns[j].key) {
-              sortedColumns.push(columns[j]);
-            }
-          }
-        }
-      }
-    }
-    worksheet.columns = sortedColumns;
+    let excelRows = []
+    dataList.forEach(rowJson => {
+      excelRows = excelRows.concat(expandRow(rowJson))
+    })
 
-    dataList.forEach((row) => {
-      var newRow: string[] = [];
-      for (let i = 0; i < row.length; i++) {
-        let jsonObj = JSON.parse(row[i]);
-        let key = sortedColumns[i].key;
-        if (sortedColumns[i].type === 'date') {
-          newRow.push(formatTimestamp(jsonObj[key]));
+    worksheet.columns = columns;
+
+    for(let i = 0; i < excelRows.length; i ++) {
+      let newRow: string[] = [];
+      for(let j = 0; j < columns.length; j ++) {
+        if (columns[j].type === 'date' && !isNaN(excelRows[i][columns[j].key])) {
+          newRow.push(formatTimestamp(excelRows[i][columns[j].key]));
         } else {
-          newRow.push(jsonObj[key]);
+          newRow.push(excelRows[i][columns[j].key]);
         }
       }
+      
       worksheet.addRow(newRow);
-    });
-
+    };
     worksheet.addRow([]);
     worksheet.addRow([]);
     worksheet.addRow(['Title', title]);
@@ -207,6 +264,9 @@ export async function start(report: Report, client) {
       request.query.bool.filter[rangeIdx].range.enterTime.lte = lte;
     }
 
+    console.log(gte);
+    console.log(lte);
+
     let response = await client.transport.request({
       method: 'GET',
       path: `/${report.index}/_search`,
@@ -214,10 +274,19 @@ export async function start(report: Report, client) {
     });
 
     let columns = getColumns(JSON.parse(report.columns));
+
+    let keys: string[] = [];
+    columns.forEach((column) => {
+      keys.push(column.key);
+    });
+
     let aggs = response.body.aggregations;
     for (let key in aggs) {
-      getData(aggs[key], [], key, dataList);
+      getData(aggs[key], [], key, dataList, keys);
     }
+
+    console.log(columns)
+    console.log(dataList)
 
     // new folder absolute path
     // todo: move to config

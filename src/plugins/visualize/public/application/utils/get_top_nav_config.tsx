@@ -482,6 +482,45 @@ export const getTopNavConfig = (
                 if (!response.id || response.error) {
                   savedVis.title = currentTitle;
                 }
+                else {
+                  // save conditions
+                  let enabledStr = window.sessionStorage.getItem(response.id + '_isConditionEnabled')
+                  let conditionsStr = window.sessionStorage.getItem(response.id + '_conditions')
+                  let visconditionStr = window.sessionStorage.getItem(response.id + '_viscondition')
+                  let enabled = false
+                  let conditions = {
+                    start: "",
+                    end: ""
+                  }
+                  // let viscondition = null
+                  if(enabledStr) {
+                    enabled = JSON.parse(enabledStr)
+                  }
+                  if(conditionsStr) {
+                    conditions = JSON.parse(conditionsStr)
+                  }
+                  // if(visconditionStr) {
+                  //   viscondition = JSON.parse(visconditionStr)
+                  // }
+                  const requestOptions = {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'kbn-xsrf': 'true' },
+                    body: JSON.stringify({
+                      id: response.id,
+                      enabled,
+                      start: conditions.start,
+                      end: conditions.end,
+                      viscondition: visconditionStr
+                    }),
+                  };
+                  fetch('/api/vis_conditions/put', requestOptions).then((response) => {
+                    if (response.ok) {
+                      console.log(response)
+                    } else {
+                      console.log(response)
+                    }
+                  });
+                }
 
                 return response;
               };

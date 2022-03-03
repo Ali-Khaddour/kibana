@@ -1,4 +1,4 @@
-import { PluginInitializerContext } from '......coreserver';
+import { PluginInitializerContext } from '../../../core/server';
 import { ScheduledReportsPlugin } from './plugin';
 
 //  This exports static code and TypeScript types,

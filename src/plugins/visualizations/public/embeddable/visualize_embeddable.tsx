@@ -199,11 +199,18 @@ export class VisualizeEmbeddable
   public getColumns = (aggs: any[]) => {
     if (!aggs) return [];
     let columns = [];
+    // first add the buckets
     for (let i = 0; i < aggs.length; i++) {
+      if(aggs[i].schema === 'metric')
+        continue;
       let key = aggs[i].id.toString();
       let name = aggs[i].params?.customLabel;
       if (!name) {
-        name = aggs[i].params?.field?.spec?.name || '-';
+        let json = JSON.parse(JSON.stringify(aggs[i]))
+        name = ''
+        if(aggs[i].schema === 'metric' && json.type)
+          name = json.type + ' '
+        name += aggs[i].params?.field?.spec?.name || '-';
       }
       let type = aggs[i].params?.field?.spec?.type;
       if (!type) {
@@ -216,6 +223,31 @@ export class VisualizeEmbeddable
       };
       columns.push(obj);
     }
+    // add the buckets
+    for (let i = 0; i < aggs.length; i++) {
+      if(aggs[i].schema !== 'metric')
+        continue;
+      let key = aggs[i].id.toString();
+      let name = aggs[i].params?.customLabel;
+      if (!name) {
+        let json = JSON.parse(JSON.stringify(aggs[i]))
+        name = ''
+        if(aggs[i].schema === 'metric' && json.type)
+          name = json.type + ' '
+        name += aggs[i].params?.field?.spec?.name || '-';
+      }
+      let type = aggs[i].params?.field?.spec?.type;
+      if (!type) {
+        type = 'string';
+      }
+      let obj = {
+        key,
+        name,
+        type,
+      };
+      columns.push(obj);
+    }
+
     return columns;
   };
 
@@ -233,7 +265,8 @@ export class VisualizeEmbeddable
 
     const request = JSON.stringify(adapters.requests?.getRequests()[0].json);
     const href = window.location.href;
-    const id = href.split('#')[1].split('/')[2].split('?')[0];
+    // const id = href.split('#')[1].split('/')[2].split('?')[0];
+    const id = this.vis.id || ''
     const index = this.vis.data.indexPattern?.title;
 
     localStorage.setItem('index', index ? index : '');
@@ -241,9 +274,14 @@ export class VisualizeEmbeddable
     localStorage.setItem('title', title);
     localStorage.setItem('request', request);
     localStorage.setItem('columns', columns);
-    history.push({
-      pathname: '/app/scheduledReports/create',
-    });
+    const linkWithSpaceRegExp = /\/s\/(.*)\/app/
+    const match = href.match(linkWithSpaceRegExp)
+    const linkWithSpace = match? match[0] : '/app'
+    if(id) {
+      history.push({
+        pathname: `${linkWithSpace}/scheduledReports/create`,
+      });
+    }
   };
 
   /**
@@ -313,7 +351,6 @@ export class VisualizeEmbeddable
     if (this.vis.description && this.domNode) {
       this.domNode.setAttribute('data-description', this.vis.description);
     }
-
     return dirty;
   }
 
@@ -461,6 +498,7 @@ export class VisualizeEmbeddable
       inspectorAdapters: this.inspectorAdapters,
       executionContext: context,
     };
+
     if (this.abortController) {
       this.abortController.abort();
     }

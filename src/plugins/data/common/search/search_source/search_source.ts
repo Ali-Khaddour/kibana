@@ -291,7 +291,7 @@ export class SearchSource {
    */
   fetch$(
     options: ISearchOptions = {}
-  ): Observable<IKibanaSearchResponse<estypes.SearchResponse<any>>> {
+    ): Observable<IKibanaSearchResponse<estypes.SearchResponse<any>>> {
     const { getConfig } = this.dependencies;
     const syncSearchByDefault = getConfig(UI_SETTINGS.COURIER_BATCH_SEARCHES);
 
@@ -370,13 +370,11 @@ export class SearchSource {
 
   private inspectSearch(s$: Observable<IKibanaSearchResponse<any>>, options: ISearchOptions) {
     const { id, title, description, adapter } = options.inspector || { title: '' };
-
     const requestResponder = adapter?.start(title, {
       id,
       description,
       searchSessionId: options.sessionId,
     });
-
     const trackRequestBody = () => {
       try {
         requestResponder?.json(this.getSearchRequestBody());
@@ -553,6 +551,7 @@ export class SearchSource {
     val: SearchSourceFields[K],
     key: K
   ) {
+    // alert(JSON.stringify(options))
     val = typeof val === 'function' ? val(this) : val;
     if (val == null || !key) return;
 
@@ -571,7 +570,6 @@ export class SearchSource {
     };
 
     const { getConfig } = this.dependencies;
-
     switch (key) {
       case 'filter':
         return addToRoot('filters', (data.filters || []).concat(val));
@@ -632,7 +630,7 @@ export class SearchSource {
     }
     return searchRequest;
   }
-
+  
   private getIndexType(index?: IIndexPattern) {
     return this.shouldOverwriteDataViewType ? this.overwriteDataViewType : index?.type;
   }
@@ -852,7 +850,6 @@ export class SearchSource {
       body.highlight = getHighlightRequest(getConfig(UI_SETTINGS.DOC_HIGHLIGHT));
       delete searchRequest.highlightAll;
     }
-
     return searchRequest;
   }
 

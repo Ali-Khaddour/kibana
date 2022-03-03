@@ -131,7 +131,6 @@ function DefaultEditorAggGroup({
     },
     [reorderAggs, group]
   );
-
   return (
     <EuiDragDropContext onDragEnd={onDragEnd}>
       <EuiPanel data-test-subj={`${groupName}AggGroup`} paddingSize="s">
