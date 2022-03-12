@@ -63,7 +63,7 @@ const loginFormMessages: Record<LogoutReason, NonNullable<LoginFormProps['messag
   LOGGED_OUT: {
     type: LoginFormMessageType.Info,
     content: i18n.translate('xpack.security.login.loggedOutDescription', {
-      defaultMessage: 'You have logged out of Tracking Data Analyzer.',
+      defaultMessage: `You have logged out of ${process.env.APP_TITILE}.`,
     }),
   },
   UNAUTHENTICATED: {
@@ -132,7 +132,7 @@ export class LoginPage extends Component<Props, State> {
               <h1>
                 <FormattedMessage
                   id="xpack.security.loginPage.welcomeTitle"
-                  defaultMessage="Welcome to Tracking Data Analyzer"
+                  defaultMessage={`Welcome to ${process.env.APP_TITILE}`}
                 />
               </h1>
             </EuiTitle>

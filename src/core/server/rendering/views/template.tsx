@@ -11,7 +11,7 @@ import React, { FunctionComponent, createElement } from 'react';
 import { RenderingMetadata } from '../types';
 import { Fonts } from './fonts';
 import { Styles } from './styles';
-import { Logo } from './logo';
+import Logo from './logo';
 
 interface Props {
   metadata: RenderingMetadata;
@@ -36,11 +36,11 @@ export const Template: FunctionComponent<Props> = ({
         <meta charSet="utf-8" />
         <meta httpEquiv="X-UA-Compatible" content="IE=edge,chrome=1" />
         <meta name="viewport" content="width=device-width" />
-        <title>Tracking Data Analyzer</title>
+        <title>{process.env.APP_TITILE}</title>
         <Fonts themeVersion={themeVersion} url={uiPublicUrl} />
         {/* The alternate icon is a fallback for Safari which does not yet support SVG favicons */}
-        <link rel="alternate icon" type="image/png" href={`${uiPublicUrl}/favicons/favicon.png`} />
-        <link rel="icon" type="image/svg+xml" href={`${uiPublicUrl}/favicons/favicon.svg`} />
+        <link rel="alternate icon" type="image/png" href={`${uiPublicUrl}/favicons/${process.env.APP_SHORTCUT}-favicon.png`} />
+        <link rel="icon" type="image/svg+xml" href={`${uiPublicUrl}/favicons/${process.env.APP_SHORTCUT}-favicon.svg`} />
         <meta name="theme-color" content="#ffffff" />
         <meta name="color-scheme" content="light dark" />
         <Styles darkMode={darkMode} stylesheetPaths={stylesheetPaths} />
@@ -61,15 +61,15 @@ export const Template: FunctionComponent<Props> = ({
           data-test-subj="kbnLoadingMessage"
         >
           <div className="kbnLoaderWrap">
-            <Logo />
+            <Logo uiPublicUrl={uiPublicUrl} />
             <div
               className="kbnWelcomeText"
               data-error-message={i18n('core.ui.welcomeErrorMessage', {
                 defaultMessage:
-                  'Tracking Data Analyzer did not load properly. Check the server output for more information.',
+                  `${process.env.APP_TITILE} did not load properly. Check the server output for more information.`,
               })}
             >
-              {i18n('core.ui.welcomeMessage', { defaultMessage: 'Loading Tracking Data Analyzer' })}
+              {i18n('core.ui.welcomeMessage', { defaultMessage: `Loading ${process.env.APP_TITILE}` })}
             </div>
             <div className="kbnProgress" />
           </div>
@@ -83,7 +83,7 @@ export const Template: FunctionComponent<Props> = ({
         </div>
 
         <div className="kbnWelcomeView" id="kbn_legacy_browser_error" style={{ display: 'none' }}>
-          <Logo />
+          <Logo uiPublicUrl={uiPublicUrl} />
 
           <h2 className="kbnWelcomeTitle">
             {i18n('core.ui.legacyBrowserTitle', {
@@ -93,7 +93,7 @@ export const Template: FunctionComponent<Props> = ({
           <div className="kbnWelcomeText">
             {i18n('core.ui.legacyBrowserMessage', {
               defaultMessage:
-                'This Tracking Data Analyzer installation has strict security requirements enabled that your current browser does not meet.',
+                `This ${process.env.APP_TITILE} installation has strict security requirements enabled that your current browser does not meet.`,
             })}
           </div>
         </div>
