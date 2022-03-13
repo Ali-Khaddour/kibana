@@ -13,13 +13,18 @@ export const ReplaceFavicon: Task = {
 
   async run(config, log, build) {
     await copy(
-      config.resolveFromRepo(`src/core/server/core_app/assets/favicons/${process.env.APP_SHORTCUT}-favicon.distribution.png`),
-      build.resolvePath(`src/core/server/core_app/assets/favicons/${process.env.APP_SHORTCUT}-favicon.png`)
+      config.resolveFromRepo(`src/core/server/core_app/assets/favicons/tda-favicon.distribution.png`),
+      build.resolvePath(`src/core/server/core_app/assets/favicons/tda-favicon.png`)
     );
 
     await copy(
-      config.resolveFromRepo(`src/core/server/core_app/assets/favicons/${process.env.APP_SHORTCUT}-favicon.distribution.svg`),
-      build.resolvePath(`src/core/server/core_app/assets/favicons/${process.env.APP_SHORTCUT}-favicon.svg`)
+      config.resolveFromRepo(`src/core/server/core_app/assets/favicons/fda-favicon.distribution.png`),
+      build.resolvePath(`src/core/server/core_app/assets/favicons/fda-favicon.png`)
+    );
+
+    await copy(
+      config.resolveFromRepo(`src/core/server/core_app/assets/favicons/tda-favicon.distribution.svg`),
+      build.resolvePath(`src/core/server/core_app/assets/favicons/tda-favicon.svg`)
     );
   },
 };
