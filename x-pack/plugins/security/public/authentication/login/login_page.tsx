@@ -34,7 +34,6 @@ import type { LogoutReason } from '../../../common/types';
 import type { ConfigType } from '../../config';
 import type { LoginFormProps } from './components';
 import { DisabledLoginForm, LoginForm, LoginFormMessageType } from './components';
-import { APP_SHORTCUT, APP_TITLE } from '../../../server/environment/variables';
 
 interface Props {
   http: HttpStart;
@@ -47,6 +46,9 @@ interface Props {
 interface State {
   loginState: LoginState | null;
 }
+
+const APP_TITLE = localStorage.getItem("APP_TITLE");
+const APP_SHORTCUT = localStorage.getItem("APP_SHORTCUT");
 
 const loginFormMessages: Record<LogoutReason, NonNullable<LoginFormProps['message']>> = {
   SESSION_EXPIRED: {

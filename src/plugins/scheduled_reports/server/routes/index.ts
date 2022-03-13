@@ -4,7 +4,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { schema } from '@kbn/config-schema';
 import { generateCronExpression, start } from '../utils';
 import { Report } from '../models/report';
-import { catch } from 'fetch-mock';
 
 interface PluginSetupDeps {
   security: SecurityPluginSetup;

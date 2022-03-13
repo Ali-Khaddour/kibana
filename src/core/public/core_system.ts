@@ -177,6 +177,9 @@ export class CoreSystem {
       const fatalErrors = await this.fatalErrors.start();
       await this.integrations.start({ uiSettings });
 
+      localStorage.setItem("APP_TITLE", JSON.stringify(process.env.APP_TITLE));
+      localStorage.setItem("APP_SHORTCUT", JSON.stringify(process.env.APP_SHORTCUT));
+
       const coreUiTargetDomElement = document.createElement('div');
       coreUiTargetDomElement.id = 'kibana-body';
       coreUiTargetDomElement.dataset.testSubj = 'kibanaChrome';
