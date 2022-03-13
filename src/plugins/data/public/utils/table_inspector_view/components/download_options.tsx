@@ -24,6 +24,7 @@ import { Datatable } from '../../../../../expressions';
 import { downloadMultipleAs } from '../../../../../share/public';
 import { FieldFormatsStart } from '../../../../../field_formats/public';
 import { IUiSettingsClient } from '../../../../../../core/public';
+import { APP_TITLE, APP_SHORTCUT } from 'src/core/server/environment/variables';
 
 interface DataDownloadOptionsState {
   isPopoverOpen: boolean;
@@ -108,8 +109,8 @@ class DataDownloadOptions extends Component<DataDownloadOptionsProps, DataDownlo
   ) => {
     const ExcelJS = require('exceljs');
     const workbook = new ExcelJS.Workbook();
-    workbook.creator = process.env.APP_TITLE;
-    workbook.lastModifiedBy = process.env.APP_TITLE;
+    workbook.creator = APP_TITLE;
+    workbook.lastModifiedBy = APP_TITLE;
     workbook.created = new Date();
     workbook.modified = new Date();
     workbook.lastPrinted = new Date();

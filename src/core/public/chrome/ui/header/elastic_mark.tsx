@@ -6,8 +6,9 @@
  * Side Public License, v 1.
  */
 
+import { APP_SHORTCUT } from '../../../../server/environment/variables';
 import React, { HTMLAttributes } from 'react';
 
 export const ElasticMark = ({ ...props }: HTMLAttributes<SVGElement>) => (
-  <img src={`/ui/favicons/${process.env.APP_SHORTCUT}-mark.svg`} alt="" />
+  <img src={`/ui/favicons/${APP_SHORTCUT}-mark.svg`} alt="" />
 );

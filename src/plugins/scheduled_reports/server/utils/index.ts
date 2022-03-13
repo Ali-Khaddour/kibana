@@ -1,4 +1,3 @@
-import { MAILING_PASS, MAILING_SERVICE, MAILING_USER } from '../../common';
 import { Report } from '../models/report';
 import { v4 as uuidv4 } from 'uuid';
 const ExcelJS = require('exceljs');
@@ -6,6 +5,10 @@ const fs = require('fs');
 const path = require('path');
 var nodemailer = require('nodemailer');
 const util = require('util');
+
+const MAILING_SERVICE = process.env.APP_MAILING_SERVICE;
+const MAILING_USER = process.env.APP_MAILING_USER;
+const MAILING_PASS = process.env.APP_MAILING_PASS;
 
 export function generateCronExpression(duration: string, unit: string): string {
   if (unit === 'second') {

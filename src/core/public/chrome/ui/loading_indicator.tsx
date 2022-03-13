@@ -6,6 +6,7 @@
  * Side Public License, v 1.
  */
 
+import { APP_SHORTCUT } from '../../../server/environment/variables';
 import { EuiLoadingSpinner, EuiProgress } from '@elastic/eui';
 import { i18n } from '@kbn/i18n';
 import React from 'react';
@@ -75,7 +76,7 @@ export class LoadingIndicator extends React.Component<LoadingIndicatorProps, { v
       />
     ) : (
       <img 
-      src={`/ui/favicons/${process.env.APP_SHORTCUT}-favicon.png`}
+      src={`/ui/favicons/${APP_SHORTCUT}-favicon.png`}
       height="24"
       style={{maxWidth: "24px"}}
       />

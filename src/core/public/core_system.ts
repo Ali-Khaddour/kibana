@@ -6,6 +6,7 @@
  * Side Public License, v 1.
  */
 import { CoreId } from '../server';
+import { APP_SHORTCUT } from '../server/environment/variables'
 import { PackageInfo, EnvironmentMode } from '../server/types';
 import { CoreSetup, CoreStart } from '.';
 import { ChromeService } from './chrome';
@@ -255,7 +256,7 @@ export class CoreSystem {
       links.appendChild(safee_linkedin)
       
       
-      if(process.env.APP_SHORTCUT === 'tda') {
+      if(APP_SHORTCUT === 'tda') {
         poweredby_img.src = `/ui/logos/tda-poweredby.jpg`
         links.appendChild(safee_fb)
         safee_linkedin.href = 'https://www.linkedin.com/company/safee-tracking-system/';

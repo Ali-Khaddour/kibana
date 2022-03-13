@@ -34,6 +34,7 @@ import type { LogoutReason } from '../../../common/types';
 import type { ConfigType } from '../../config';
 import type { LoginFormProps } from './components';
 import { DisabledLoginForm, LoginForm, LoginFormMessageType } from './components';
+import { APP_SHORTCUT, APP_TITLE } from 'src/core/server/environment/variables';
 
 interface Props {
   http: HttpStart;
@@ -63,7 +64,7 @@ const loginFormMessages: Record<LogoutReason, NonNullable<LoginFormProps['messag
   LOGGED_OUT: {
     type: LoginFormMessageType.Info,
     content: i18n.translate('xpack.security.login.loggedOutDescription', {
-      defaultMessage: `You have logged out of ${process.env.APP_TITLE}.`,
+      defaultMessage: `You have logged out of ${APP_TITLE}.`,
     }),
   },
   UNAUTHENTICATED: {
@@ -124,7 +125,7 @@ export class LoginPage extends Component<Props, State> {
               <EuiIcon type="logoElastic" size="xxl" />
             </span> */}
             <img
-              src={`/logos/${process.env.APP_SHORTCUT}-logo.svg`}
+              src={`/logos/${APP_SHORTCUT}-logo.svg`}
               alt="logo"
               style={{ width: '200px', paddingBottom: '20px' }}
             />
@@ -132,7 +133,7 @@ export class LoginPage extends Component<Props, State> {
               <h1>
                 <FormattedMessage
                   id="xpack.security.loginPage.welcomeTitle"
-                  defaultMessage={`Welcome to ${process.env.APP_TITLE}`}
+                  defaultMessage={`Welcome to ${APP_TITLE}`}
                 />
               </h1>
             </EuiTitle>
@@ -153,8 +154,8 @@ export class LoginPage extends Component<Props, State> {
             <EuiFlexItem>
               <span className='powered-by' style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "30px", marginTop: "30px", color: "#69707D" }}>
                 Powered By
-                <a href={process.env.APP_SHORTCUT === 'tda' ? 'https://www.safee.xyz/' : 'https://www.formera.xyz/'} target='_blank' style={{ paddingLeft: "5px" }}>
-                  {process.env.APP_SHORTCUT === 'tda' ? 'Safee Tracking' : 'Formera'}
+                <a href={APP_SHORTCUT === 'tda' ? 'https://www.safee.xyz/' : 'https://www.formera.xyz/'} target='_blank' style={{ paddingLeft: "5px" }}>
+                  {APP_SHORTCUT === 'tda' ? 'Safee Tracking' : 'Formera'}
                   <span style={{ fontSize: "16px", paddingLeft: "2px" }}>&trade;</span>
                 </a>
               </span>
