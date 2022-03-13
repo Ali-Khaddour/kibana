@@ -6,7 +6,6 @@
  * Side Public License, v 1.
  */
 
-import { APP_SHORTCUT } from '../../../server/environment/variables';
 import { EuiLoadingSpinner, EuiProgress } from '@elastic/eui';
 import { i18n } from '@kbn/i18n';
 import React from 'react';
@@ -66,6 +65,8 @@ export class LoadingIndicator extends React.Component<LoadingIndicatorProps, { v
     const ariaLabel = i18n.translate('core.ui.loadingIndicatorAriaLabel', {
       defaultMessage: 'Loading content',
     });
+
+    const APP_SHORTCUT = localStorage.getItem('APP_SHORTCUT');
 
     const logo = this.state.visible ? (
       <EuiLoadingSpinner

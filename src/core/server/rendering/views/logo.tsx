@@ -10,7 +10,7 @@ import React from 'react';
 
 function Logo(props: { uiPublicUrl: any; }) {
   return <img
-    src={`${props.uiPublicUrl}/logos/${process.env.APP_SHORTCUT}-logo.svg`}
+    src={`${props.uiPublicUrl}/logos/${process.env.APP_SHORTCUT}-logo.png`}
     alt="logo"
     style={{ width: '200px', paddingBottom: '20px' }}
   />

@@ -9,6 +9,9 @@
 import { APP_SHORTCUT } from '../../../../server/environment/variables';
 import React, { HTMLAttributes } from 'react';
 
-export const ElasticMark = ({ ...props }: HTMLAttributes<SVGElement>) => (
-  <img src={`/ui/favicons/${APP_SHORTCUT}-mark.svg`} alt="" />
-);
+export const ElasticMark = ({ ...props }: HTMLAttributes<SVGElement>) => {
+  let APP_SHORTCUT = localStorage.getItem('APP_SHORTCUT');
+  return (
+    <img src={`/ui/favicons/${APP_SHORTCUT}-mark.svg`} alt="" />
+  );
+}

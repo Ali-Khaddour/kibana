@@ -6,7 +6,6 @@
  * Side Public License, v 1.
  */
 import { CoreId } from '../server';
-import { APP_SHORTCUT } from '../server/environment/variables'
 import { PackageInfo, EnvironmentMode } from '../server/types';
 import { CoreSetup, CoreStart } from '.';
 import { ChromeService } from './chrome';
@@ -177,9 +176,6 @@ export class CoreSystem {
       const fatalErrors = await this.fatalErrors.start();
       await this.integrations.start({ uiSettings });
 
-      localStorage.setItem("APP_TITLE", JSON.stringify(process.env.APP_TITLE));
-      localStorage.setItem("APP_SHORTCUT", JSON.stringify(process.env.APP_SHORTCUT));
-
       const coreUiTargetDomElement = document.createElement('div');
       coreUiTargetDomElement.id = 'kibana-body';
       coreUiTargetDomElement.dataset.testSubj = 'kibanaChrome';
@@ -224,6 +220,7 @@ export class CoreSystem {
       };
 
       await this.plugins.start(core);
+      let APP_SHORTCUT = localStorage.getItem('APP_SHORTCUT');
 
       // ensure the rootDomElement is empty
       this.rootDomElement.textContent = '';

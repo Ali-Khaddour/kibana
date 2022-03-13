@@ -48,6 +48,9 @@ export const Template: FunctionComponent<Props> = ({
         {/* Inject stylesheets into the <head> before scripts so that KP plugins with bundled styles will override them */}
         <meta name="add-styles-here" />
         <meta name="add-scripts-here" />
+        <meta name="app-title" content={`${process.env.APP_TITLE}`}/>
+        <meta name="app-shortcut" content={`${process.env.APP_SHORTCUT}`}/>
+        <script src={`${uiPublicUrl}/scripts/custom.js`}></script>
       </head>
       <body>
         {createElement('kbn-csp', {

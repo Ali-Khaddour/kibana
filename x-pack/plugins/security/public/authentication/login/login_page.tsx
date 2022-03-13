@@ -117,7 +117,6 @@ export class LoginPage extends Component<Props, State> {
     const contentBodyClasses = classNames('loginWelcome__content', 'loginWelcome-body', {
       ['loginWelcome__contentDisabledForm']: !loginIsSupported,
     });
-
     return (
       <div className="loginWelcome login-form">
         <header className="loginWelcome__header">
@@ -127,7 +126,7 @@ export class LoginPage extends Component<Props, State> {
               <EuiIcon type="logoElastic" size="xxl" />
             </span> */}
             <img
-              src={`/logos/${APP_SHORTCUT}-logo.svg`}
+              src={`/ui/logos/${APP_SHORTCUT}-logo.png`}
               alt="logo"
               style={{ width: '200px', paddingBottom: '20px' }}
             />
