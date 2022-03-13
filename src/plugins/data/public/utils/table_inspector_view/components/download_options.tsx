@@ -24,7 +24,7 @@ import { Datatable } from '../../../../../expressions';
 import { downloadMultipleAs } from '../../../../../share/public';
 import { FieldFormatsStart } from '../../../../../field_formats/public';
 import { IUiSettingsClient } from '../../../../../../core/public';
-import { APP_TITLE, APP_SHORTCUT } from 'src/core/server/environment/variables';
+import { APP_TITLE } from '../../../../server/environment/variables';
 
 interface DataDownloadOptionsState {
   isPopoverOpen: boolean;

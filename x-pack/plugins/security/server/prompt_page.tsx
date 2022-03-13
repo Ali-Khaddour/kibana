@@ -67,8 +67,8 @@ export function PromptPage({
         ))}
         <Fonts url={uiPublicURL} />
         {/* The alternate icon is a fallback for Safari which does not yet support SVG favicons */}
-        <link rel="alternate icon" type="image/png" href={`${uiPublicURL}/favicons/${APP_SHORTCUT}-favicon.png`} />
-        <link rel="icon" type="image/svg+xml" href={`${uiPublicURL}/favicons/${APP_SHORTCUT}-favicon.svg`} />
+        <link rel="alternate icon" type="image/png" href={`${uiPublicURL}/favicons/${process.env.APP_SHORTCUT}-favicon.png`} />
+        <link rel="icon" type="image/svg+xml" href={`${uiPublicURL}/favicons/${process.env.APP_SHORTCUT}-favicon.svg`} />
         {scriptPaths.map((path) => (
           <script src={basePath.prepend(path)} key={path} />
         ))}

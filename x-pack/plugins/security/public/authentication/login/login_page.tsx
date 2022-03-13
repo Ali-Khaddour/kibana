@@ -34,7 +34,7 @@ import type { LogoutReason } from '../../../common/types';
 import type { ConfigType } from '../../config';
 import type { LoginFormProps } from './components';
 import { DisabledLoginForm, LoginForm, LoginFormMessageType } from './components';
-import { APP_SHORTCUT, APP_TITLE } from 'src/core/server/environment/variables';
+import { APP_SHORTCUT, APP_TITLE } from '../../../server/environment/variables';
 
 interface Props {
   http: HttpStart;
