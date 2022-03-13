@@ -37,6 +37,7 @@
   height: 500px;
   width: 600px;
   position: relative;
+  border-radius: 10px;
 }
 
 .aboutus_content > * {
@@ -49,12 +50,11 @@
 }
 
 .poweredby_logo {
-  background-image: url(./assets/safee-logo.jpg);
-  height: 150px;
-  width: 456px;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
+  height: 150px !important;
+}
+
+.poweredby_logo > img {
+  height: 100% !important;
 }
 
 .links {

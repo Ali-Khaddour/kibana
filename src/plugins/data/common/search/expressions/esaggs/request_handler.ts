@@ -280,9 +280,13 @@ function getDataList(dataList: any[]): any {
           let value = e[key];
           firstPart[key] = value;
         };
-        let lastElement = JSON.parse(dataListArr[dataListArr.length - 1]).conditionalTerms[0];
-        for (let i = 0; i < lastElement.length; i++) {
-          result.push({ ...firstPart, ...lastElement[i] })
+        let dataListParsed = JSON.parse(dataListArr[dataListArr.length - 1]);
+        if(dataListParsed.conditionalTerms && dataListParsed.conditionalTerms.length > 0)
+        {
+          let lastElement = dataListParsed.conditionalTerms[0];
+          for (let i = 0; i < lastElement.length; i++) {
+            result.push({ ...firstPart, ...lastElement[i] })
+          }
         }
       })
       // if(result.length > 0) {

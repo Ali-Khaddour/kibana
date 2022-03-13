@@ -36,7 +36,7 @@ export const Template: FunctionComponent<Props> = ({
         <meta charSet="utf-8" />
         <meta httpEquiv="X-UA-Compatible" content="IE=edge,chrome=1" />
         <meta name="viewport" content="width=device-width" />
-        <title>{process.env.APP_TITILE}</title>
+        <title>{process.env.APP_TITLE}</title>
         <Fonts themeVersion={themeVersion} url={uiPublicUrl} />
         {/* The alternate icon is a fallback for Safari which does not yet support SVG favicons */}
         <link rel="alternate icon" type="image/png" href={`${uiPublicUrl}/favicons/${process.env.APP_SHORTCUT}-favicon.png`} />
@@ -66,17 +66,17 @@ export const Template: FunctionComponent<Props> = ({
               className="kbnWelcomeText"
               data-error-message={i18n('core.ui.welcomeErrorMessage', {
                 defaultMessage:
-                  `${process.env.APP_TITILE} did not load properly. Check the server output for more information.`,
+                  `${process.env.APP_TITLE} did not load properly. Check the server output for more information.`,
               })}
             >
-              {i18n('core.ui.welcomeMessage', { defaultMessage: `Loading ${process.env.APP_TITILE}` })}
+              {i18n('core.ui.welcomeMessage', { defaultMessage: `Loading ${process.env.APP_TITLE}` })}
             </div>
             <div className="kbnProgress" />
           </div>
           <span className='powered-by' style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "30px", marginTop: "30px", color: "#69707D", position: "fixed", bottom: "0" }}>
             Powered By
-            <a href="https://www.safee.xyz/" target='_blank' style={{ paddingLeft: "5px" }}>
-              Safee Tracking
+            <a href={process.env.APP_SHORTCUT === 'tda' ? 'https://www.safee.xyz/' : 'https://www.formera.xyz/'} target='_blank' style={{ paddingLeft: "5px" }}>
+              {process.env.APP_SHORTCUT === 'tda' ? 'Safee Tracking' : 'Formera'}
               <span style={{ fontSize: "16px", paddingLeft: "2px" }}>&trade;</span>
             </a>
           </span>
@@ -93,7 +93,7 @@ export const Template: FunctionComponent<Props> = ({
           <div className="kbnWelcomeText">
             {i18n('core.ui.legacyBrowserMessage', {
               defaultMessage:
-                `This ${process.env.APP_TITILE} installation has strict security requirements enabled that your current browser does not meet.`,
+                `This ${process.env.APP_TITLE} installation has strict security requirements enabled that your current browser does not meet.`,
             })}
           </div>
         </div>

@@ -10,6 +10,7 @@ import { ScheduledReportsPluginSetup, ScheduledReportsPluginStart } from './type
 import { defineRoutes } from './routes';
 
 import { SecurityPluginSetup } from '../../../../x-pack/plugins/security/public';
+import { startAllScheduledReports } from './utils';
 
 interface PluginSetupDeps {
   security: SecurityPluginSetup;
@@ -32,11 +33,17 @@ export class ScheduledReportsPlugin
     // Register server side APIs
     defineRoutes(router, this.schedule, { security });
 
+    // start all scheduled reports
+    
+
     return {};
   }
 
   public start(core: CoreStart) {
     this.logger.debug('scheduledReports: Started');
+    
+    startAllScheduledReports(core.elasticsearch.client.asInternalUser, this.schedule);
+
     return {};
   }
 

@@ -17,10 +17,13 @@ export const createQuery = async (conditions: {start: string, end: string}, subM
     {
         let numOfPreviousCols = getNumOfBuckets(aggs);
         for(let i = 0; i < aggs.length; i ++) {
-            if(aggs[i].schema === 'metric' && aggs[i].type !== 'count') {
-                let value = aggs[i].type
-                let field = aggs[i].params.field
-                let id = `col-${numOfPreviousCols ++}-${aggs[i].id}`
+            if(aggs[i].schema === 'metric') {
+                let value = aggs[i].type;
+                let id = `col-${numOfPreviousCols ++}-${aggs[i].id}`;
+                let field = '';
+                if(aggs[i].type !== 'count') {
+                    field = aggs[i].params.field
+                }
                 subMetrics.push({
                     id,
                     value,
@@ -151,7 +154,8 @@ export const createQuery = async (conditions: {start: string, end: string}, subM
 
     mapScript += `map['messageTime'] = doc['messageTime'].value; `;
     subMetrics.forEach(metric => {
-        mapScript += `map['${metric.field}'] = doc['${metric.field}'].value; `;
+        if(metric.value != 'count')
+            mapScript += `map['${metric.field}'] = doc['${metric.field}'].value; `;
     });
     mapScript += `map['plateNo.keyword'] = doc['plateNo.keyword'].value; `;
     
@@ -200,7 +204,7 @@ export const createQuery = async (conditions: {start: string, end: string}, subM
             }
             else if(metric.value === "avg") {
                 start += `${metric.value}_sum_${metric.field.replace(".", "_")} = p.get('${metric.field}'); `;
-                end += `${metric.value}_${metric.field.replace(".", "_")} = p.get('${metric.field}') `;
+                start += `${metric.value}_${metric.field.replace(".", "_")} = p.get('${metric.field}'); `;
             }
         });
         start += `inCondition = true; ctr = 1; startTime = p.get('messageTime'); `;
@@ -211,7 +215,12 @@ export const createQuery = async (conditions: {start: string, end: string}, subM
         // todo: change next line
         finalize += `map['plateNo.keyword'] = p.get('plateNo.keyword');`;
         subMetrics.forEach(metric => {
-            finalize += `map['${metric.id}'] = ${metric.value}_${metric.field.replace(".", "_")}; `;
+            if(metric.value != 'count') {
+                finalize += `map['${metric.id}'] = ${metric.value}_${metric.field.replace(".", "_")}; `;
+            }
+            else {
+                finalize += `map['${metric.id}'] = ctr; `;
+            }
         });
         finalize += `map['startTime'] = startTime.toString(); `;
         finalize += `map['endTime'] = endTime.toString(); `;
@@ -254,7 +263,12 @@ export const createQuery = async (conditions: {start: string, end: string}, subM
         // todo: change next line
         end += `map['plateNo.keyword'] = p.get('plateNo.keyword');`;
         subMetrics.forEach(metric => {
-            end += `map['${metric.id}'] = ${metric.value}_${metric.field.replace(".", "_")}; `;
+            if(metric.value != 'count') {
+                end += `map['${metric.id}'] = ${metric.value}_${metric.field.replace(".", "_")}; `;
+            }
+            else {
+                end += `map['${metric.id}'] = ctr; `;
+            }
         });
         end += `map['startTime'] = startTime.toString(); `;
         end += `map['endTime'] = endTime.toString(); `;
@@ -362,7 +376,12 @@ export const createQuery = async (conditions: {start: string, end: string}, subM
         // todo: change next line
         end += `map['plateNo.keyword'] = p.get('plateNo.keyword');`;
         subMetrics.forEach(metric => {
-            end += `map['${metric.id}'] = ${metric.value}_${metric.field.replace(".", "_")}; `;
+            if(metric.value != 'count') {
+                end += `map['${metric.id}'] = ${metric.value}_${metric.field.replace(".", "_")}; `;
+            }
+            else {
+                end += `map['${metric.id}'] = ctr; `;
+            }
         });
         end += `map['startTime'] = startTime.toString(); `;
         end += `map['endTime'] = endTime.toString(); `;

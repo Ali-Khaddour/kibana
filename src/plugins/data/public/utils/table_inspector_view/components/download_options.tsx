@@ -108,8 +108,8 @@ class DataDownloadOptions extends Component<DataDownloadOptionsProps, DataDownlo
   ) => {
     const ExcelJS = require('exceljs');
     const workbook = new ExcelJS.Workbook();
-    workbook.creator = 'Safee Tracking';
-    workbook.lastModifiedBy = 'Safee Tracking';
+    workbook.creator = process.env.APP_TITLE;
+    workbook.lastModifiedBy = process.env.APP_TITLE;
     workbook.created = new Date();
     workbook.modified = new Date();
     workbook.lastPrinted = new Date();

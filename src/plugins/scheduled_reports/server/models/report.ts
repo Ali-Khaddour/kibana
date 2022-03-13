@@ -1,6 +1,6 @@
 export interface Report {
   id: string;
-  companyId: string;
+  username: string;
   cronSchedule: string;
   visualizationId: string;
   receiver: string;

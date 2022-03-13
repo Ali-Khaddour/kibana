@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { schema } from '@kbn/config-schema';
 import { generateCronExpression, start } from '../utils';
 import { Report } from '../models/report';
-import { ELASTIC_DEFAULT_ROLES } from '../../common';
+import { catch } from 'fetch-mock';
 
 interface PluginSetupDeps {
   security: SecurityPluginSetup;
@@ -17,53 +17,66 @@ export function defineRoutes(router: IRouter, schedule: any, { security }: Plugi
       validate: false,
     },
     async (context, request, response) => {
-      const currentUser = security.authc.getCurrentUser(request);
-      const roles = (await currentUser).roles;
-      let companyId;
-      roles.forEach((role) => {
-        if (ELASTIC_DEFAULT_ROLES.indexOf(role) === -1) {
-          companyId = role;
-        }
-      });
-      // todo: catch companyId (role) is not in the default roles and user has no privilage on it
-      const index = companyId + '-scheduled_reports';
-      const data = await context.core.elasticsearch.client.asCurrentUser.search({
-        index,
-        body: {
-          query: {
-            match_all: {},
+      try {
+        const currentUser = security.authc.getCurrentUser(request);
+        const username = (await currentUser).username;
+        const index = 'scheduled_reports';
+        const data = await context.core.elasticsearch.client.asInternalUser.search({
+          index,
+          body: {
+            query: {
+              bool: {
+                must: [],
+                filter: [
+                  {
+                    match_phrase: {
+                      "username.keyword": username
+                    }
+                  }
+                ],
+                should: [],
+                must_not: []
+              }
+            },
+            size: 1000,
           },
-          size: 1000,
-        },
-      });
+        });
 
-      let rows: {
-        id: number;
-        visId: any;
-        visName: any;
-        index: any;
-        reportEvery: string;
-        timeFilter: string;
-      }[] = [];
-      let ndx = 0;
-      data.body.hits.hits.forEach(
-        (element: any) => {
-          let newRow = {
-            id: ndx + 1,
-            visId: element._source.id,
-            visName: element._source.title,
-            index: element._source.index,
-            reportEvery: element._source.duration + ' ' + element._source.durationUnit,
-            timeFilter: 'Last ' + element._source.timeFilter + ' ' + element._source.timeFilterUnit,
-          };
-          rows[ndx++] = newRow;
-        }
-      );
-      return response.ok({
-        body: {
-          rows,
-        },
-      });
+        let rows: {
+          id: number;
+          visId: any;
+          visName: any;
+          index: any;
+          reportEvery: string;
+          timeFilter: string;
+        }[] = [];
+        let ndx = 0;
+        data.body.hits.hits.forEach(
+          (element: any) => {
+            let newRow = {
+              id: ndx + 1,
+              visId: element._source.id,
+              visName: element._source.title,
+              index: element._source.index,
+              reportEvery: element._source.duration + ' ' + element._source.durationUnit,
+              timeFilter: 'Last ' + element._source.timeFilter + ' ' + element._source.timeFilterUnit,
+            };
+            rows[ndx++] = newRow;
+          }
+        );
+        return response.ok({
+          body: {
+            rows,
+          },
+        });
+      }
+      catch(e) {
+        return response.ok({
+          body: {
+            rows: [],
+          },
+        });
+      }
     }
   );
 
@@ -86,16 +99,42 @@ export function defineRoutes(router: IRouter, schedule: any, { security }: Plugi
       },
     },
     async (context, request, response) => {
-      let companyId = request.body.index.split('-')[0];
-      // let companyId = 'superuser';
       let id = uuidv4();
+      const currentUser = security.authc.getCurrentUser(request);
+      const username = (await currentUser).username;
+
+      let esIndex = request.body.index;
+
+      // validate that the user has access to the index
+      let res = await context.core.elasticsearch.client.asCurrentUser.security.hasPrivileges({
+        user: username,
+        body: {
+          index: [
+            {
+              names: [esIndex],
+              privileges: ["write"]
+            }
+          ]
+        }
+      })
+
+      let hasPrivileges = res?.body?.index[esIndex]?.write;
+      if (!hasPrivileges) {
+        return response.customError({
+          body: {
+            message: 'Something went wrong, please try again!',
+          },
+          statusCode: 500,
+        });
+      }
+
       // todo:
       // validate input
-      let cronSchedule = generateCronExpression(request.body.duration, request.body.durationUnit);
 
+      let cronSchedule = generateCronExpression(request.body.duration, request.body.durationUnit);
       let report: Report = {
         id,
-        companyId,
+        username,
         cronSchedule,
         receiver: request.body.receiver,
         index: request.body.index,
@@ -111,8 +150,8 @@ export function defineRoutes(router: IRouter, schedule: any, { security }: Plugi
 
       try {
         // save the scheduled report to ES
-        await context.core.elasticsearch.client.asCurrentUser.index({
-          index: `${companyId}-scheduled_reports`,
+        await context.core.elasticsearch.client.asInternalUser.index({
+          index: `scheduled_reports`,
           id,
           body: report,
         });
@@ -148,34 +187,68 @@ export function defineRoutes(router: IRouter, schedule: any, { security }: Plugi
       },
     },
     async (context, request, response) => {
+      // get logged in user
       const currentUser = security.authc.getCurrentUser(request);
-      const roles = (await currentUser).roles;
-      let companyId;
-      // todo: validate id
-      roles.forEach((role) => {
-        if (ELASTIC_DEFAULT_ROLES.indexOf(role) === -1) {
-          companyId = role;
-        }
+      // get his user name
+      const username = (await currentUser).username;
+      // name of scheduled reports index
+      const index = 'scheduled_reports';
+      // validate that the current logged in user owns the report
+      // this can be happened by retrieving the report by its id
+      // and comparing the username saved in it with the current username
+      // if so, then the current logged in user owns the report
+      const data = await context.core.elasticsearch.client.asInternalUser.search({
+        index,
+        body: {
+          query: {
+            bool: {
+              must: [],
+              filter: [
+                {
+                  match_phrase: {
+                    "id.keyword": request.params.id
+                  }
+                }
+              ],
+              should: [],
+              must_not: []
+            }
+          },
+          size: 1000,
+        },
       });
 
+      // comapare the usernames
+      let report: any = data.body.hits.hits[0]?._source;
+      if (report && report.username !== username) {
+        // if the user names don't match
+        // the user trying to delete the report does not own the report
+        // return error message
+        return response.customError({
+          body: {
+            message: 'Something went wrong, please try again!',
+          },
+          statusCode: 500,
+        });
+      }
+      // otherwise
       try {
         // stop the scheduler
         schedule.scheduledJobs[request.params.id].cancel();
       } catch (error) {
-        // todo: uncomment the following
-        // return response.customError({
-        //   body: {
-        //     message:
-        //       'Could not delete the scheduled report. Either it does not exist, or somthing went wrong, please try again!',
-        //   },
-        //   statusCode: error.status | 500,
-        // });
+        return response.customError({
+          body: {
+            message:
+              'Could not delete the scheduled report. Either it does not exist, or somthing went wrong, please try again!',
+          },
+          statusCode: error.status | 500,
+        });
       }
 
       try {
         // delete docuemnt from ES
-        await context.core.elasticsearch.client.asCurrentUser.delete({
-          index: `${companyId}-scheduled_reports`,
+        await context.core.elasticsearch.client.asInternalUser.delete({
+          index,
           refresh: true,
           id: request.params.id,
         });

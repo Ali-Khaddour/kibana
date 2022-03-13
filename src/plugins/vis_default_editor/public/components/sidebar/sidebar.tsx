@@ -179,6 +179,51 @@ function DefaultEditorSideBarComponent({
   );
 
   useEffect(() => {
+    async function prepareData() {
+      let visId = window.sessionStorage.getItem('visId')
+      if (!visId) {
+        if (vis.id) {
+          visId = vis.id
+          // get conditions from ES
+          await getConditionsFromES(vis.id);
+        }
+        else {
+          visId = 'not_set'
+        }
+        window.sessionStorage.setItem('visId', visId)
+      }
+      if (visId !== vis.id && vis.id) {
+        // changed the visualization
+        // get new conditions from ES
+
+        getConditionsFromES(vis.id);
+        window.sessionStorage.setItem('visId', vis.id)
+        visId = vis.id;
+      }
+      let isConditionEnabledTmp = window.sessionStorage.getItem((visId == 'not_set' ? '' : visId + '_') + 'isConditionEnabled')
+      if (isConditionEnabledTmp) {
+        setIsConditionEnabled(JSON.parse(isConditionEnabledTmp))
+      }
+      else {
+        window.sessionStorage.setItem((visId == 'not_set' ? '' : visId + '_') + 'isConditionEnabled', 'false')
+      }
+      let conditionsTmp = window.sessionStorage.getItem((visId == 'not_set' ? '' : visId + '_') + 'conditions')
+      if (conditionsTmp) {
+        setConditions(JSON.parse(conditionsTmp))
+      }
+      else {
+        window.sessionStorage.setItem((visId == 'not_set' ? '' : visId + '_') + 'conditions', JSON.stringify(conditions))
+      }
+      if (conditionsTmp) {
+        createQuery(JSON.parse(conditionsTmp), [], JSON.parse(JSON.stringify(state.data.aggs?.aggs)), (visId == 'not_set' ? '' : visId + '_'))
+      }
+      applyChanges();
+    }
+    prepareData()
+    // window.sessionStorage.setItem('id')
+  }, []);
+
+  useEffect(() => {
     const changeHandler = ({ isDirty: dirty }: { isDirty: boolean }) => {
       setDirty(dirty);
 
@@ -193,63 +238,18 @@ function DefaultEditorSideBarComponent({
     };
   }, [resetValidity, eventEmitter]);
 
-  const getConditionsFromES = (visId: string) => {
-    fetch(`/api/vis_conditions/${visId}`)
-      .then((response) => response.json())
-      .then((data) => {
-        let hits = data.body.hits.hits
-        if (hits.length > 0) {
-          changeEnableConditions(hits[0]._source.enabled)
-          changeConditions({
-            start: hits[0]._source.start,
-            end: hits[0]._source.end
-          })
-          applyChanges()
-        }
-      });
+  const getConditionsFromES = async (visId: string) => {
+    const response = await fetch(`/api/vis_conditions/${visId}`)
+    const data = await response.text();
+    let hits = JSON.parse(data).body.hits.hits
+    if (hits.length > 0) {
+      changeEnableConditions(hits[0]._source.enabled)
+      changeConditions({
+        start: hits[0]._source.start,
+        end: hits[0]._source.end
+      })
+    }
   }
-
-  useEffect(() => {
-    let visId = window.sessionStorage.getItem('visId')
-    if (!visId) {
-      if (vis.id) {
-        visId = vis.id
-        // get conditions from ES
-        getConditionsFromES(vis.id);
-      }
-      else {
-        visId = 'not_set'
-      }
-      window.sessionStorage.setItem('visId', visId)
-    }
-    if (visId !== vis.id && vis.id) {
-      // changed the visualization
-      // get new conditions from ES
-
-      getConditionsFromES(vis.id);
-      window.sessionStorage.setItem('visId', vis.id)
-      visId = vis.id;
-    }
-    let isConditionEnabledTmp = window.sessionStorage.getItem((visId == 'not_set' ? '' : visId + '_') + 'isConditionEnabled')
-    if (isConditionEnabledTmp) {
-      setIsConditionEnabled(JSON.parse(isConditionEnabledTmp))
-    }
-    else {
-      window.sessionStorage.setItem((visId == 'not_set' ? '' : visId + '_') + 'isConditionEnabled', 'false')
-    }
-    let conditionsTmp = window.sessionStorage.getItem((visId == 'not_set' ? '' : visId + '_') + 'conditions')
-    if (conditionsTmp) {
-      setConditions(JSON.parse(conditionsTmp))
-    }
-    else {
-      window.sessionStorage.setItem((visId == 'not_set' ? '' : visId + '_') + 'conditions', JSON.stringify(conditions))
-    }
-    if (conditionsTmp) {
-      createQuery(JSON.parse(conditionsTmp), [], JSON.parse(JSON.stringify(state.data.aggs?.aggs)), (visId == 'not_set' ? '' : visId + '_'))
-    }
-    applyChanges();
-    // window.sessionStorage.setItem('id')
-  }, []);
 
   // subscribe on external vis changes using browser history, for example press back button
   useEffect(() => {

@@ -239,23 +239,37 @@ export class CoreSystem {
       powered_by.innerHTML = "Powered by";
       var poweredby_logo = document.createElement('div');
       poweredby_logo.classList.add('poweredby_logo');
+      var poweredby_img = document.createElement('img');
+      poweredby_logo.appendChild(poweredby_img)
       var links = document.createElement('div')
       links.classList.add('links');
       var safee_linkedin = document.createElement('a');
       safee_linkedin.classList.add('safee_linkedin');
-      safee_linkedin.href = 'https://www.linkedin.com/company/safee-tracking-system/'
       var safee_fb = document.createElement('a');
       safee_fb.classList.add('safee_fb');
-      safee_fb.href = 'https://www.facebook.com/SafeeTrackingSystem'
       var safee_mail = document.createElement('a');
       safee_mail.classList.add('safee_mail');
-      safee_mail.href = 'mailto:support@safee.xyz'
       var safee_site = document.createElement('a');
       safee_site.classList.add('safee_site');
-      safee_site.href = 'https://www.safee.xyz/'
       aboutus_content.appendChild(close_btn)
       links.appendChild(safee_linkedin)
-      links.appendChild(safee_fb)
+      
+      
+      if(process.env.APP_SHORTCUT === 'tda') {
+        poweredby_img.src = `/ui/logos/tda-poweredby.jpg`
+        links.appendChild(safee_fb)
+        safee_linkedin.href = 'https://www.linkedin.com/company/safee-tracking-system/';
+        safee_fb.href = 'https://www.facebook.com/SafeeTrackingSystem'
+        safee_mail.href = 'mailto:support@safee.xyz'
+        safee_site.href = 'https://www.safee.xyz/'
+      }
+      else {
+        poweredby_img.src = `/ui/logos/fda-poweredby.jpg`
+        safee_linkedin.href = 'https://www.linkedin.com/company/formera/';
+        safee_mail.href = 'mailto:info@formera.xyz'
+        safee_site.href = 'https://www.formera.xyz/'
+      }
+      
       links.appendChild(safee_mail)
       links.appendChild(safee_site)
 

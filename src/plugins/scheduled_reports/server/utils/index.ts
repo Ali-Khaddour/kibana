@@ -31,7 +31,7 @@ export function getMailContent(reportTitle: string): string {
     '</title>\n' +
     '</head>\n' +
     '<body>\n' +
-    "<p>This email has been automatically sent by <strong>Safee</strong> (You don't have to reply).</p>\n" +
+    "<p>This email has been automatically sent by <strong>" + process.env.APP_TITLE + "</strong> (You don't have to reply).</p>\n" +
     '<p style="margin: 5px;">You can find your report as an attached file.</p>\n' +
     '<p><strong>Thanks!</strong></p>\n' +
     '<br/>\n' +
@@ -172,8 +172,8 @@ export async function createExcel(
 ) {
   try {
     const workbook = new ExcelJS.Workbook();
-    workbook.creator = 'Safee Tracking';
-    workbook.lastModifiedBy = 'Safee Tracking';
+    workbook.creator = process.env.APP_TITLE;
+    workbook.lastModifiedBy = process.env.APP_TITLE;
     workbook.created = new Date();
     workbook.modified = new Date();
     workbook.lastPrinted = new Date();
@@ -285,9 +285,6 @@ export async function start(report: Report, client) {
       getData(aggs[key], [], key, dataList, keys);
     }
 
-    console.log(columns)
-    console.log(dataList)
-
     // new folder absolute path
     // todo: move to config
     const dirPath = 'tmp';
@@ -345,4 +342,40 @@ export async function start(report: Report, client) {
   } catch (e) {
     console.log(e);
   }
+}
+
+
+export async function startAllScheduledReports(internalUser, schedule) {
+  const allReports = await internalUser.search({
+    index: "scheduled_reports",
+    body: {
+      query: {
+        match_all: {},
+      },
+      size: 1000,
+    },
+  });
+
+  allReports.body.hits.hits.forEach(
+    (element: any) => {
+      let report: Report = {
+        id: element._source.id,
+        username: element._source.id,
+        cronSchedule: element._source.id,
+        receiver: element._source.receiver,
+        index: element._source.index,
+        request: element._source.request,
+        visualizationId: element._source.visualizationId,
+        title: element._source.title,
+        duration: element._source.duration,
+        durationUnit: element._source.durationUnit,
+        timeFilter: element._source.timeFilter,
+        timeFilterUnit: element._source.timeFilterUnit,
+        columns: element._source.columns,
+      };
+      schedule.scheduleJob(element._source.id, element._source.cronSchedule, function () {
+        start(report, internalUser);
+      });
+    }
+  );
 }
