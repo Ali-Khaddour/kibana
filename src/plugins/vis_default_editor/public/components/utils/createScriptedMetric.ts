@@ -1,5 +1,9 @@
-let timeFields = ['messageTime', 'timestamp', 'alarms.fireTime']
-let arrayFields = ['geofences.keyword', 'alarms.keyword']
+import { IIndexPatternFieldList, FieldSpec } from "src/plugins/data/common";
+
+// let timeFields = ['messageTime', 'timestamp', 'alarms.fireTime', 'submission_DateTime']
+// let arrayFields = ['geofences.keyword', 'alarms.keyword']
+
+// let timestamp = localStorage.getItem('timestamp');
 
 const getNumOfBuckets = (aggs: any[]) => {
     let ctr = 0;
@@ -11,7 +15,13 @@ const getNumOfBuckets = (aggs: any[]) => {
     return ctr;
 }
 
-export const createQuery = async (conditions: {start: string, end: string}, subMetrics: any[], aggs: any[], visId: string) => {
+function checkTimeField(field: any) {
+    return field?.type === 'date';
+}
+
+export const createQuery = async (timeField: string | undefined, fields: (IIndexPatternFieldList & { toSpec: () => Record<string, FieldSpec>; }) | undefined, conditions: {start: string, end: string}, subMetrics: any[], aggs: any[], visId: string) => {
+    let timeFields = fields?.filter(checkTimeField).map(field => field.spec.name) || [];
+    let timeFieldName = timeField ? timeField : 'timestamp';
     subMetrics = []
     if(aggs)
     {
@@ -152,14 +162,13 @@ export const createQuery = async (conditions: {start: string, end: string}, subM
         mapScript += `map['${condition.substring(1, condition.length - 1)}'] = doc['${condition.substring(1, condition.length - 1)}'].value; `;
     });
 
-    mapScript += `map['messageTime'] = doc['messageTime'].value; `;
+    mapScript += `map['${timeFieldName}'] = doc['${timeFieldName}'].value; `;
     subMetrics.forEach(metric => {
         if(metric.value != 'count')
             mapScript += `map['${metric.field}'] = doc['${metric.field}'].value; `;
     });
-    mapScript += `map['plateNo.keyword'] = doc['plateNo.keyword'].value; `;
     
-    mapScript += 'state.messages.put(doc.messageTime.value, map); ';
+    mapScript += `state.messages.put(doc.${timeFieldName}.value, map); `;
 
     let combineScript = "";
     // if end has * geofence condition -> start must have end condition
@@ -207,13 +216,11 @@ export const createQuery = async (conditions: {start: string, end: string}, subM
                 start += `${metric.value}_${metric.field.replace(".", "_")} = p.get('${metric.field}'); `;
             }
         });
-        start += `inCondition = true; ctr = 1; startTime = p.get('messageTime'); `;
+        start += `inCondition = true; ctr = 1; `;
         start += `if(!prevGeofences.containsAll(p.get('geofences.keyword'))) {`
 
-        let finalize = ` inCondition = false; endTime = p.get('messageTime'); `;
+        let finalize = ` inCondition = false;`;
         finalize += 'Map map = new HashMap();';
-        // todo: change next line
-        finalize += `map['plateNo.keyword'] = p.get('plateNo.keyword');`;
         subMetrics.forEach(metric => {
             if(metric.value != 'count') {
                 finalize += `map['${metric.id}'] = ${metric.value}_${metric.field.replace(".", "_")}; `;
@@ -222,8 +229,6 @@ export const createQuery = async (conditions: {start: string, end: string}, subM
                 finalize += `map['${metric.id}'] = ctr; `;
             }
         });
-        finalize += `map['startTime'] = startTime.toString(); `;
-        finalize += `map['endTime'] = endTime.toString(); `;
         finalize += `map['count'] = ctr; `;
         finalize += 'state.res.add(map); ';
 
@@ -234,7 +239,7 @@ export const createQuery = async (conditions: {start: string, end: string}, subM
         let end = "else if(inCondition == true && (";
         end += endCond;
         end += `) && (!prevGeofences.containsAll(p.get('geofences.keyword')))`
-        end += `) { inCondition = false; ctr += 1; endTime = p.get('messageTime'); `;
+        end += `) { inCondition = false; ctr += 1; `;
         subMetrics.forEach(metric => {
             if(timeFields.includes(metric.field)) {
                 if(metric.value === "max") {
@@ -260,8 +265,6 @@ export const createQuery = async (conditions: {start: string, end: string}, subM
             }
         });
         end += 'Map map = new HashMap();';
-        // todo: change next line
-        end += `map['plateNo.keyword'] = p.get('plateNo.keyword');`;
         subMetrics.forEach(metric => {
             if(metric.value != 'count') {
                 end += `map['${metric.id}'] = ${metric.value}_${metric.field.replace(".", "_")}; `;
@@ -343,11 +346,11 @@ export const createQuery = async (conditions: {start: string, end: string}, subM
                 start += `${metric.value}_sum_${metric.field.replace(".", "_")} = p.get('${metric.field}'); `;
             }
         });
-        start += `inCondition = true; ctr = 1; startTime = p.get('messageTime');}`;
+        start += `inCondition = true; ctr = 1; }`;
 
         let end = "else if(inCondition == true && (";
         end += endCond;
-        end += `)) { inCondition = false; ctr += 1; endTime = p.get('messageTime'); `;
+        end += `)) { inCondition = false; ctr += 1; `;
         subMetrics.forEach(metric => {
             if(timeFields.includes(metric.field)) {
                 if(metric.value === "max") {
@@ -374,7 +377,6 @@ export const createQuery = async (conditions: {start: string, end: string}, subM
         });
         end += 'Map map = new HashMap();';
         // todo: change next line
-        end += `map['plateNo.keyword'] = p.get('plateNo.keyword');`;
         subMetrics.forEach(metric => {
             if(metric.value != 'count') {
                 end += `map['${metric.id}'] = ${metric.value}_${metric.field.replace(".", "_")}; `;

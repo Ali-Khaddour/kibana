@@ -94,6 +94,7 @@ export function defineRoutes(router: IRouter, schedule: any, { security }: Plugi
           timeFilter: schema.any(),
           timeFilterUnit: schema.any(),
           columns: schema.any(),
+          timeField: schema.any()
         }),
       },
     },
@@ -145,6 +146,7 @@ export function defineRoutes(router: IRouter, schedule: any, { security }: Plugi
         timeFilter: request.body.timeFilter,
         timeFilterUnit: request.body.timeFilterUnit,
         columns: request.body.columns,
+        timeField: request.body.timeField
       };
 
       try {

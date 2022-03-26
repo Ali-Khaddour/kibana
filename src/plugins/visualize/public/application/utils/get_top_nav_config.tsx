@@ -483,10 +483,32 @@ export const getTopNavConfig = (
                   savedVis.title = currentTitle;
                 }
                 else {
-                  // save conditions
-                  let enabledStr = window.sessionStorage.getItem(response.id + '_isConditionEnabled')
-                  let conditionsStr = window.sessionStorage.getItem(response.id + '_conditions')
-                  let visconditionStr = window.sessionStorage.getItem(response.id + '_viscondition')
+                  let prevId = window.sessionStorage.getItem('visId');
+
+                  let enabledStr;
+                  let conditionsStr;
+                  let visconditionStr;
+                  // if there was never a previous id, it was never saved
+                  if(!prevId) {
+                    // save conditions
+                    enabledStr = window.sessionStorage.getItem('isConditionEnabled')
+                    conditionsStr = window.sessionStorage.getItem('conditions')
+                    visconditionStr = window.sessionStorage.getItem('viscondition')
+                    // set it to the new created one
+                    prevId = response.id;
+                    // set the values in the local storage with the new id
+                    window.sessionStorage.setItem('visId', prevId);
+                    window.sessionStorage.setItem(prevId + '_isConditionEnabled', enabledStr || 'false');
+                    window.sessionStorage.setItem(prevId + '_conditions', conditionsStr || '');
+                    window.sessionStorage.setItem(prevId + '_viscondition', visconditionStr || '');
+                  }
+                  else {
+                    // save conditions
+                    enabledStr = window.sessionStorage.getItem(prevId + '_isConditionEnabled')
+                    conditionsStr = window.sessionStorage.getItem(prevId + '_conditions')
+                    visconditionStr = window.sessionStorage.getItem(prevId + '_viscondition')
+                  }
+
                   let enabled = false
                   let conditions = {
                     start: "",
@@ -506,7 +528,7 @@ export const getTopNavConfig = (
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json', 'kbn-xsrf': 'true' },
                     body: JSON.stringify({
-                      id: response.id,
+                      id: prevId,
                       enabled,
                       start: conditions.start,
                       end: conditions.end,

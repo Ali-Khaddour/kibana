@@ -142,7 +142,7 @@ function DefaultEditorSideBarComponent({
     if (tmpConditions) {
       conditionsToWuery = JSON.parse(tmpConditions)
     }
-    await createQuery(conditionsToWuery, tmpMetrics, JSON.parse(JSON.stringify(state.data.aggs?.aggs)), visId);
+    await createQuery(vis.data.indexPattern?.timeFieldName, vis.data.indexPattern?.fields, conditionsToWuery, tmpMetrics, JSON.parse(JSON.stringify(state.data.aggs?.aggs)), visId);
   }
 
   const applyChanges = useCallback(async () => {
@@ -200,6 +200,10 @@ function DefaultEditorSideBarComponent({
         window.sessionStorage.setItem('visId', vis.id)
         visId = vis.id;
       }
+      else if(visId !== vis.id && !vis.id) {
+        window.sessionStorage.setItem('visId', '');
+        visId = '';
+      }
       let isConditionEnabledTmp = window.sessionStorage.getItem((visId == 'not_set' ? '' : visId + '_') + 'isConditionEnabled')
       if (isConditionEnabledTmp) {
         setIsConditionEnabled(JSON.parse(isConditionEnabledTmp))
@@ -215,7 +219,7 @@ function DefaultEditorSideBarComponent({
         window.sessionStorage.setItem((visId == 'not_set' ? '' : visId + '_') + 'conditions', JSON.stringify(conditions))
       }
       if (conditionsTmp) {
-        createQuery(JSON.parse(conditionsTmp), [], JSON.parse(JSON.stringify(state.data.aggs?.aggs)), (visId == 'not_set' ? '' : visId + '_'))
+        await createQuery(vis.data.indexPattern?.timeFieldName, vis.data.indexPattern?.fields, JSON.parse(conditionsTmp), [], JSON.parse(JSON.stringify(state.data.aggs?.aggs)), (visId == 'not_set' ? '' : visId + '_'))
       }
       applyChanges();
     }

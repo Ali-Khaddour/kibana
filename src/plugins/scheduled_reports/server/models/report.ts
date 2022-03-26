@@ -12,4 +12,5 @@ export interface Report {
   timeFilter: number;
   timeFilterUnit: string;
   columns: string;
+  timeField: string;
 }

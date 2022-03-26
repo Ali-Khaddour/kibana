@@ -253,22 +253,10 @@ export async function start(report: Report, client) {
       gte.setMonth(gte.getMonth() - report.timeFilter);
     }
 
-    if (request.query.bool.filter[rangeIdx].range.timestamp) {
-      request.query.bool.filter[rangeIdx].range.timestamp.gte = gte;
-      request.query.bool.filter[rangeIdx].range.timestamp.lte = lte;
-    } else if (request.query.bool.filter[rangeIdx].range.messageTime) {
-      request.query.bool.filter[rangeIdx].range.messageTime.gte = gte;
-      request.query.bool.filter[rangeIdx].range.messageTime.lte = lte;
-    } else if (request.query.bool.filter[rangeIdx].range.fireTime) {
-      request.query.bool.filter[rangeIdx].range.fireTime.gte = gte;
-      request.query.bool.filter[rangeIdx].range.fireTime.lte = lte;
-    } else if (request.query.bool.filter[rangeIdx].range.enterTime) {
-      request.query.bool.filter[rangeIdx].range.enterTime.gte = gte;
-      request.query.bool.filter[rangeIdx].range.enterTime.lte = lte;
+    if(request.query.bool.filter[rangeIdx].range[report.timeField]) {
+      request.query.bool.filter[rangeIdx].range[report.timeField].gte = gte;
+      request.query.bool.filter[rangeIdx].range[report.timeField].lte = lte;
     }
-
-    console.log(gte);
-    console.log(lte);
 
     let response = await client.transport.request({
       method: 'GET',
@@ -375,6 +363,7 @@ export async function startAllScheduledReports(internalUser, schedule) {
         timeFilter: element._source.timeFilter,
         timeFilterUnit: element._source.timeFilterUnit,
         columns: element._source.columns,
+        timeField: element._source.timeField
       };
       schedule.scheduleJob(element._source.id, element._source.cronSchedule, function () {
         start(report, internalUser);

@@ -71,6 +71,7 @@ export const ScheduledReportsApp = ({
   const request = localStorage.getItem('request');
   // localStorage.removeItem('request');
   const columns = localStorage.getItem('columns');
+  const timeField = localStorage.getItem('timeField');
 
   // const [page, setPage] = useState(id ? 'form' : 'list');
   const onChangeSelect = (e: { target: { value: React.SetStateAction<string> } }) => {
@@ -179,6 +180,7 @@ export const ScheduledReportsApp = ({
         timeFilter,
         timeFilterUnit: timeFilterselectedValue,
         columns,
+        timeField
       }),
     };
     fetch('/api/scheduled_reports/create', requestOptions).then((response) => {

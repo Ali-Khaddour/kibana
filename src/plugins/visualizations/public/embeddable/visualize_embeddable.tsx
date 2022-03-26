@@ -274,6 +274,7 @@ export class VisualizeEmbeddable
     localStorage.setItem('title', title);
     localStorage.setItem('request', request);
     localStorage.setItem('columns', columns);
+    localStorage.setItem('reportTimeField', this.vis.data.indexPattern?.timeFieldName || '');
     const linkWithSpaceRegExp = /\/s\/(.*)\/app/
     const match = href.match(linkWithSpaceRegExp)
     const linkWithSpace = match? match[0] : '/app'
