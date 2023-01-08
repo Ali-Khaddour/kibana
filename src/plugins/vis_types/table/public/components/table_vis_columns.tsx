@@ -6,9 +6,9 @@
  * Side Public License, v 1.
  */
 
-import React from 'react';
-import { EuiDataGridColumnCellActionProps, EuiDataGridColumn } from '@elastic/eui';
+import { EuiDataGridColumn, EuiDataGridColumnCellActionProps } from '@elastic/eui';
 import { i18n } from '@kbn/i18n';
+import React from 'react';
 
 import { DatatableColumn, DatatableRow, IInterpreterRenderHandlers } from 'src/plugins/expressions';
 import { FormattedColumns, TableVisUiState } from '../types';
@@ -51,85 +51,123 @@ export const createGridColumns = (
     });
   };
 
-  return columns.map((col, colIndex): EuiDataGridColumn => {
+  if (
+    rows.length > 0 &&
+    rows[0].isEnterExitGeoEnable &&
+    columns[columns.length - 2].id != 'exitGeofences' && // if not already added
+    columns[columns.length - 2].id != 'enterGeofence' // if not already added
+  ) {
+    columns.push({ ...columns[0] });
+    columns.push({ ...columns[0] });
+    let colExitGeofence = columns[columns.length - 2];
+    colExitGeofence.id = 'exitGeofences';
+    colExitGeofence.name = 'Exsited Geofence';
+    let colEnterGeofence = columns[columns.length - 1];
+    colEnterGeofence.id = 'enterGeofence';
+    colEnterGeofence.name = 'Entered Geofence';
+  }
+  if (
+    rows.length > 0 &&
+    rows[0]['urlToAnotherDashboard'] &&
+    columns[columns.length - 1].id != 'urlToAnotherDashboard'
+  ) {
+    columns.push({ ...columns[0] });
+    let urlToAnotherDashboard = columns[columns.length - 1];
+    urlToAnotherDashboard.id = 'urlToAnotherDashboard';
+    urlToAnotherDashboard.name = 'External Dashboard';
+  }
+  let result = columns.map((col, colIndex): EuiDataGridColumn => {
+    // if (col.id == 'exitGeofences' || col.id == 'enterGeofences') {
+
+    // }
     const formattedColumn = formattedColumns[col.id];
-    const cellActions = formattedColumn.filterable
-      ? [
-          ({ rowIndex, columnId, Component, closePopover }: EuiDataGridColumnCellActionProps) => {
-            const rowValue = rows[rowIndex][columnId];
-            const contentsIsDefined = rowValue !== null && rowValue !== undefined;
-            const cellContent = formattedColumn.formatter.convert(rowValue);
+    const cellActions =
+      formattedColumn && formattedColumn.filterable
+        ? [
+            ({ rowIndex, columnId, Component, closePopover }: EuiDataGridColumnCellActionProps) => {
+              const rowValue = rows[rowIndex][columnId];
+              const contentsIsDefined = rowValue !== null && rowValue !== undefined;
+              const cellContent = formattedColumn.formatter.convert(rowValue);
 
-            const filterForText = i18n.translate(
-              'visTypeTable.tableCellFilter.filterForValueText',
-              {
-                defaultMessage: 'Filter for value',
-              }
-            );
-            const filterForAriaLabel = i18n.translate(
-              'visTypeTable.tableCellFilter.filterForValueAriaLabel',
-              {
-                defaultMessage: 'Filter for value: {cellContent}',
-                values: {
-                  cellContent,
-                },
-              }
-            );
+              const filterForText = i18n.translate(
+                'visTypeTable.tableCellFilter.filterForValueText',
+                {
+                  defaultMessage: 'Filter for value',
+                }
+              );
+              const filterForAriaLabel = i18n.translate(
+                'visTypeTable.tableCellFilter.filterForValueAriaLabel',
+                {
+                  defaultMessage: 'Filter for value: {cellContent}',
+                  values: {
+                    cellContent,
+                  },
+                }
+              );
 
-            return (
-              contentsIsDefined && (
-                <Component
-                  aria-label={filterForAriaLabel}
-                  data-test-subj="tbvChartCell__filterForCellValue"
-                  onClick={() => {
-                    onFilterClick({ row: rowIndex, column: colIndex, value: rowValue }, false);
-                    closePopover();
-                  }}
-                  iconType="plusInCircle"
-                >
-                  {filterForText}
-                </Component>
-              )
-            );
-          },
-          ({ rowIndex, columnId, Component, closePopover }: EuiDataGridColumnCellActionProps) => {
-            const rowValue = rows[rowIndex][columnId];
-            const contentsIsDefined = rowValue !== null && rowValue !== undefined;
-            const cellContent = formattedColumn.formatter.convert(rowValue);
-
-            const filterOutText = i18n.translate(
-              'visTypeTable.tableCellFilter.filterOutValueText',
-              {
-                defaultMessage: 'Filter out value',
+              return (
+                contentsIsDefined && (
+                  <Component
+                    aria-label={filterForAriaLabel}
+                    data-test-subj="tbvChartCell__filterForCellValue"
+                    onClick={() => {
+                      onFilterClick({ row: rowIndex, column: colIndex, value: rowValue }, false);
+                      closePopover();
+                    }}
+                    iconType="plusInCircle"
+                  >
+                    {filterForText}
+                  </Component>
+                )
+              );
+            },
+            ({ rowIndex, columnId, Component, closePopover }: EuiDataGridColumnCellActionProps) => {
+              const rowValue = rows[rowIndex][columnId];
+              const contentsIsDefined = rowValue !== null && rowValue !== undefined;
+              let cellContent = null;
+              if (columnId == 'exitGeofences' || columnId == 'enterGeofence') {
+                cellContent = `${rowValue}`;
+              } else if (columnId == 'urlToAnotherDashboard') {
+                let url = rowValue.replace('{startTime}', `'${rows[rowIndex]['startTime']}'`);
+                url = url.replace('{endTime}', `'${rows[rowIndex]['endTime']}'`);
+                cellContent = url;
+              } else {
+                cellContent = formattedColumn.formatter.convert(rowValue);
               }
-            );
-            const filterOutAriaLabel = i18n.translate(
-              'visTypeTable.tableCellFilter.filterOutValueAriaLabel',
-              {
-                defaultMessage: 'Filter out value: {cellContent}',
-                values: {
-                  cellContent,
-                },
-              }
-            );
 
-            return (
-              contentsIsDefined && (
-                <Component
-                  aria-label={filterOutAriaLabel}
-                  onClick={() => {
-                    onFilterClick({ row: rowIndex, column: colIndex, value: rowValue }, true);
-                    closePopover();
-                  }}
-                  iconType="minusInCircle"
-                >
-                  {filterOutText}
-                </Component>
-              )
-            );
-          },
-        ]
-      : undefined;
+              const filterOutText = i18n.translate(
+                'visTypeTable.tableCellFilter.filterOutValueText',
+                {
+                  defaultMessage: 'Filter out value',
+                }
+              );
+              const filterOutAriaLabel = i18n.translate(
+                'visTypeTable.tableCellFilter.filterOutValueAriaLabel',
+                {
+                  defaultMessage: 'Filter out value: {cellContent}',
+                  values: {
+                    cellContent,
+                  },
+                }
+              );
+
+              return (
+                contentsIsDefined && (
+                  <Component
+                    aria-label={filterOutAriaLabel}
+                    onClick={() => {
+                      onFilterClick({ row: rowIndex, column: colIndex, value: rowValue }, true);
+                      closePopover();
+                    }}
+                    iconType="minusInCircle"
+                  >
+                    {filterOutText}
+                  </Component>
+                )
+              );
+            },
+          ]
+        : undefined;
 
     const initialWidth = columnsWidth.find((c) => c.colIndex === colIndex);
     const column: EuiDataGridColumn = {
@@ -160,4 +198,6 @@ export const createGridColumns = (
 
     return column;
   });
+
+  return result;
 };

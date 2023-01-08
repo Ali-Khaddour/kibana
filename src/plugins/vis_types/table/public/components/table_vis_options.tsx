@@ -7,8 +7,8 @@
  */
 
 import { get } from 'lodash';
-import React, { useEffect, useMemo } from 'react';
-import { EuiIconTip, EuiPanel } from '@elastic/eui';
+import React, { useEffect, useMemo, useState } from 'react';
+import { EuiFieldText, EuiFormRow, EuiIconTip, EuiPanel } from '@elastic/eui';
 import { i18n } from '@kbn/i18n';
 import { FormattedMessage } from '@kbn/i18n/react';
 
@@ -18,11 +18,31 @@ import {
   SwitchOption,
   SelectOption,
   NumberInputOption,
+  TextInputOption,
 } from '../../../../vis_default_editor/public';
 import { TableVisParams } from '../../common';
 import { totalAggregations } from './utils';
 
 const { tabifyGetColumns } = search;
+
+function getAggsNames(aggs: any) {
+  let options = [];
+  options.push(
+    {
+      value: '',
+      text: 'Not Selected',
+    },
+    {
+      value: 'exitGeofences',
+      text: 'Exited Geofence',
+    },
+    {
+      value: 'enterGeofences',
+      text: 'Entered Geofence',
+    }
+  );
+  return options;
+}
 
 function TableOptions({
   aggs,
@@ -60,6 +80,10 @@ function TableOptions({
       setValue('percentageCol', percentageColumns[0].value);
     }
   }, [percentageColumns, stateParams.percentageCol, setValidity, setValue]);
+
+  const changeUrlToAnotherDashboard = (e: any) => {
+    setValue('urlToAnotherDashboardVis', e.target.value);
+  };
 
   return (
     <EuiPanel paddingSize="s">
@@ -126,7 +150,7 @@ function TableOptions({
         setValue={setValue}
       />
 
-      <SwitchOption
+      {/* <SwitchOption
         label={i18n.translate('visTypeTable.params.showTotalLabel', {
           defaultMessage: 'Show total',
         })}
@@ -155,7 +179,47 @@ function TableOptions({
         value={stateParams.percentageCol}
         setValue={setValue}
         id="datatableVisualizationPercentageCol"
-      />
+      /> */}
+
+      {/* <TextInputOption
+        label={
+          <>
+            <FormattedMessage
+              id="visTypeTable.params.urlToAnotherDashboardVis"
+              defaultMessage="Url To Another Dashboad/Visualization"
+            />{' '}
+            <EuiIconTip
+              content="The visualization must have a min and max time fields"
+              position="right"
+            />
+          </>
+        }
+        paramName="urlToAnotherDashboardVis"
+        value={stateParams.urlToAnotherDashboardVis}
+        setValue={setValue}
+      /> */}
+
+      <EuiFormRow
+        label={
+          <>
+            <FormattedMessage
+              id="visTypeTable.params.urlToAnotherDashboardVis"
+              defaultMessage="Url To Another Dashboad/Visualization"
+            />{' '}
+            <EuiIconTip
+              content="The visualization must have a min and max time fields"
+              position="right"
+            />
+          </>
+        }
+      >
+        <EuiFieldText
+          placeholder="Relative Dashboard URL"
+          value={stateParams.urlToAnotherDashboardVis}
+          onChange={changeUrlToAnotherDashboard}
+        />
+        {/* <input onChange={changeUrlToAnotherDashboard} /> */}
+      </EuiFormRow>
     </EuiPanel>
   );
 }

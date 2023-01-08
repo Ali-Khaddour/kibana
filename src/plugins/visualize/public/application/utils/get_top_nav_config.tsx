@@ -481,49 +481,52 @@ export const getTopNavConfig = (
                 // If the save wasn't successful, put the original values back.
                 if (!response.id || response.error) {
                   savedVis.title = currentTitle;
-                }
-                else {
+                } else {
                   let prevId = window.sessionStorage.getItem('visId');
 
                   let enabledStr;
                   let conditionsStr;
                   let visconditionStr;
                   // if there was never a previous id, it was never saved
-                  if(!prevId) {
+                  if (!prevId) {
                     // save conditions
-                    enabledStr = window.sessionStorage.getItem('isConditionEnabled')
-                    conditionsStr = window.sessionStorage.getItem('conditions')
-                    visconditionStr = window.sessionStorage.getItem('viscondition')
+                    enabledStr = window.sessionStorage.getItem('isConditionEnabled');
+                    conditionsStr = window.sessionStorage.getItem('conditions');
+                    visconditionStr = window.sessionStorage.getItem('viscondition');
                     // set it to the new created one
                     prevId = response.id;
                     // set the values in the local storage with the new id
                     window.sessionStorage.setItem('visId', prevId);
-                    window.sessionStorage.setItem(prevId + '_isConditionEnabled', enabledStr || 'false');
+                    window.sessionStorage.setItem(
+                      prevId + '_isConditionEnabled',
+                      enabledStr || 'false'
+                    );
                     window.sessionStorage.setItem(prevId + '_conditions', conditionsStr || '');
                     window.sessionStorage.setItem(prevId + '_viscondition', visconditionStr || '');
-                  }
-                  else {
+                  } else {
                     // save conditions
-                    enabledStr = window.sessionStorage.getItem(prevId + '_isConditionEnabled')
-                    conditionsStr = window.sessionStorage.getItem(prevId + '_conditions')
-                    visconditionStr = window.sessionStorage.getItem(prevId + '_viscondition')
+                    enabledStr = window.sessionStorage.getItem(prevId + '_isConditionEnabled');
+                    conditionsStr = window.sessionStorage.getItem(prevId + '_conditions');
+                    visconditionStr = window.sessionStorage.getItem(prevId + '_viscondition');
                   }
 
-                  let enabled = false
+                  let enabled = false;
                   let conditions = {
-                    start: "",
-                    end: ""
-                  }
+                    start: '',
+                    end: '',
+                  };
                   // let viscondition = null
-                  if(enabledStr) {
-                    enabled = JSON.parse(enabledStr)
+                  if (enabledStr) {
+                    enabled = JSON.parse(enabledStr);
                   }
-                  if(conditionsStr) {
-                    conditions = JSON.parse(conditionsStr)
+                  if (conditionsStr) {
+                    conditions = JSON.parse(conditionsStr);
                   }
                   // if(visconditionStr) {
                   //   viscondition = JSON.parse(visconditionStr)
                   // }
+                  let urlToAnotherDashboard =
+                    stateContainer.getState()?.vis?.params?.urlToAnotherDashboardVis;
                   const requestOptions = {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json', 'kbn-xsrf': 'true' },
@@ -532,14 +535,15 @@ export const getTopNavConfig = (
                       enabled,
                       start: conditions.start,
                       end: conditions.end,
-                      viscondition: visconditionStr
+                      viscondition: visconditionStr,
+                      urlToAnotherDashboard,
                     }),
                   };
                   fetch('/api/vis_conditions/put', requestOptions).then((response) => {
                     if (response.ok) {
-                      console.log(response)
+                      console.log(response);
                     } else {
-                      console.log(response)
+                      console.log(response);
                     }
                   });
                 }

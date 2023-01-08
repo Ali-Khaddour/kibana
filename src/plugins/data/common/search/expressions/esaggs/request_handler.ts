@@ -35,30 +35,45 @@ export interface RequestHandlerParams {
   executionContext?: KibanaExecutionContext;
 }
 
-const getConditionsFromES = async (visId: string | undefined): Promise<{ isConditionEnabled: boolean; conditionsStart: string; conditionsEnd: string; viscondition: string; } | null> => {
+const getConditionsFromES = async (
+  visId: string | undefined
+): Promise<{
+  isConditionEnabled: boolean;
+  conditionsStart: string;
+  conditionsEnd: string;
+  viscondition: string;
+  urlToAnotherDashboard: string;
+} | null> => {
   return fetch(`/api/vis_conditions/${visId}`)
     .then((response) => response.json())
     .then(async (data) => {
       let hits = data.body.hits.hits;
       if (hits.length > 0) {
         window.sessionStorage.setItem(visId + '_isConditionEnabled', hits[0]._source.enabled);
-        window.sessionStorage.setItem(visId + '_conditions', JSON.stringify({
-          start: hits[0]._source.start,
-          end: hits[0]._source.end
-        }));
+        window.sessionStorage.setItem(
+          visId + '_conditions',
+          JSON.stringify({
+            start: hits[0]._source.start,
+            end: hits[0]._source.end,
+          })
+        );
         window.sessionStorage.setItem(visId + '_viscondition', hits[0]._source.viscondition);
+        window.sessionStorage.setItem(
+          visId + '_urlToAnotherDashboard',
+          hits[0]._source.urlToAnotherDashboard
+        );
         return {
           isConditionEnabled: hits[0]._source.enabled,
           conditionsStart: hits[0]._source.start,
           conditionsEnd: hits[0]._source.end,
-          viscondition: hits[0]._source.viscondition
+          viscondition: hits[0]._source.viscondition,
+          urlToAnotherDashboard: hits[0]._source.urlToAnotherDashboard,
         };
-      }
-      else {
+      } else {
         return null;
       }
     });
-}
+};
 
 export const handleRequest = ({
   abortSignal,
@@ -132,49 +147,75 @@ export const handleRequest = ({
     requestSearchSource.setField('filter', filters);
     requestSearchSource.setField('query', query);
 
-
-    let isConditionEnabledTmp = null
-    let isConditionEnabled = false
-    let viscondition = null
+    let isConditionEnabledTmp = null;
+    let isConditionEnabled = false;
+    let viscondition = null;
+    let urlToAnotherDashboard = null;
 
     if (executionContext?.id) {
-      isConditionEnabledTmp = window.sessionStorage.getItem(executionContext?.id + '_isConditionEnabled')
-      viscondition = window.sessionStorage.getItem(executionContext?.id + '_viscondition')
-      isConditionEnabled = false
-      if (isConditionEnabledTmp && viscondition) {
-        isConditionEnabled = JSON.parse(isConditionEnabledTmp)
-        aggs.isConditionEnabled = isConditionEnabled
-        aggs.visCondition = viscondition
-      }
-      else {
+      if (!executionContext?.parent) {
+        isConditionEnabledTmp = window.sessionStorage.getItem(
+          executionContext?.id + '_isConditionEnabled'
+        );
+        viscondition = window.sessionStorage.getItem(executionContext?.id + '_viscondition');
+        urlToAnotherDashboard = window.sessionStorage.getItem(
+          executionContext?.id + '_urlToAnotherDashboard'
+        );
+        urlToAnotherDashboard;
+        isConditionEnabled = false;
+        if (isConditionEnabledTmp && viscondition) {
+          isConditionEnabled = JSON.parse(isConditionEnabledTmp);
+          aggs.isConditionEnabled = isConditionEnabled;
+          aggs.visCondition = viscondition;
+          if (urlToAnotherDashboard) aggs.urlToAnotherDashboardVis = urlToAnotherDashboard;
+        } else {
+          let conditionsFromES: {
+            isConditionEnabled: boolean;
+            conditionsStart: string;
+            conditionsEnd: string;
+            viscondition: string;
+            urlToAnotherDashboard: string;
+          } | null = await getConditionsFromES(executionContext?.id);
+          if (conditionsFromES !== null) {
+            aggs.isConditionEnabled = conditionsFromES?.isConditionEnabled;
+            aggs.conditions = {
+              start: conditionsFromES?.conditionsStart,
+              end: conditionsFromES?.conditionsEnd,
+            };
+            aggs.visCondition = conditionsFromES?.viscondition;
+            aggs.urlToAnotherDashboardVis = conditionsFromES?.urlToAnotherDashboard;
+          }
+        }
+      } else {
         let conditionsFromES: {
           isConditionEnabled: boolean;
           conditionsStart: string;
           conditionsEnd: string;
           viscondition: string;
-        } | null = await getConditionsFromES(executionContext?.id)
+          urlToAnotherDashboard: string;
+        } | null = await getConditionsFromES(executionContext?.id);
         if (conditionsFromES !== null) {
-          aggs.isConditionEnabled = conditionsFromES?.isConditionEnabled
+          aggs.isConditionEnabled = conditionsFromES?.isConditionEnabled;
           aggs.conditions = {
             start: conditionsFromES?.conditionsStart,
-            end: conditionsFromES?.conditionsEnd
-          }
-          aggs.visCondition = conditionsFromES?.viscondition
+            end: conditionsFromES?.conditionsEnd,
+          };
+          aggs.visCondition = conditionsFromES?.viscondition;
+          aggs.urlToAnotherDashboardVis = conditionsFromES?.urlToAnotherDashboard;
         }
       }
-    }
-    else if (!executionContext?.parent) {
+    } else if (!executionContext?.parent) {
       // just a visualization
-      isConditionEnabledTmp = window.sessionStorage.getItem('isConditionEnabled')
-      isConditionEnabled = false
-      if (isConditionEnabledTmp)
-        isConditionEnabled = JSON.parse(isConditionEnabledTmp)
-      let conditions = window.sessionStorage.getItem('conditions')
-      viscondition = window.sessionStorage.getItem('viscondition')
-      if(isConditionEnabled) {
-        aggs.isConditionEnabled = isConditionEnabled
-        if(conditions) aggs.conditions = JSON.parse(conditions)
-        if(viscondition) aggs.visCondition = viscondition
+      isConditionEnabledTmp = window.sessionStorage.getItem('isConditionEnabled');
+      isConditionEnabled = false;
+      if (isConditionEnabledTmp) isConditionEnabled = JSON.parse(isConditionEnabledTmp);
+      let conditions = window.sessionStorage.getItem('conditions');
+      viscondition = window.sessionStorage.getItem('viscondition');
+      if (isConditionEnabled) {
+        aggs.isConditionEnabled = isConditionEnabled;
+        if (conditions) aggs.conditions = JSON.parse(conditions);
+        if (viscondition) aggs.visCondition = viscondition;
+        aggs.urlToAnotherDashboardVis = window.sessionStorage.getItem('urlToAnotherDashboard');
       }
     }
 
@@ -207,18 +248,43 @@ export const handleRequest = ({
                 ? { from: parsedTimeRange.min, to: parsedTimeRange.max, timeFields: allTimeFields }
                 : undefined,
             };
-            let tableContent = tabifyAggResponse(aggs, response, tabifyParams)
+            let tableContent = tabifyAggResponse(aggs, response, tabifyParams);
 
             let dataList: string[][] = [];
-            let tmpVisId = executionContext?.id ? executionContext?.id + '_isConditionEnabled' : 'isConditionEnabled'
-            let isConditionEnabled = window.sessionStorage.getItem(tmpVisId)
+            let tmpVisId = executionContext?.id
+              ? executionContext?.id + '_isConditionEnabled'
+              : 'isConditionEnabled';
+            let isConditionEnabled = window.sessionStorage.getItem(tmpVisId);
+
             if (isConditionEnabled && JSON.parse(isConditionEnabled) == true) {
+              let urlToAnotherDashboard = window.sessionStorage.getItem(
+                executionContext?.id
+                  ? executionContext?.id + '_urlToAnotherDashboard'
+                  : 'urlToAnotherDashboard'
+              );
               let aggs = response?.aggregations;
               for (let key in aggs) {
-                getData(aggs[key], [], key, dataList, 0);
+                getData(aggs[key], [], key, dataList, 0, urlToAnotherDashboard);
               }
-              window.sessionStorage.setItem('customTableData', JSON.stringify(dataList))
+              window.sessionStorage.setItem('customTableData', JSON.stringify(dataList));
               tableContent.rows = getDataList(dataList);
+
+              if (tableContent.rows.length > 0 && tableContent.rows[0].isEnterExitGeoEnable) {
+                let colExitGeofence = { ...tableContent.columns[0] };
+                colExitGeofence.id = 'exitGeofences';
+                colExitGeofence.name = 'Exsited Geofence';
+                let colEnterGeofence = { ...tableContent.columns[0] };
+                colEnterGeofence.id = 'enterGeofence';
+                colEnterGeofence.name = 'Entered Geofence';
+                tableContent.columns.push(colExitGeofence);
+                tableContent.columns.push(colEnterGeofence);
+              }
+              if (urlToAnotherDashboard) {
+                let colUrlToAnotherDashboard = { ...tableContent.columns[0] };
+                colUrlToAnotherDashboard.id = 'urlToAnotherDashboard';
+                colUrlToAnotherDashboard.name = 'External Dashboard';
+                tableContent.columns.push(colUrlToAnotherDashboard);
+              }
             }
             return tableContent;
           })
@@ -227,7 +293,14 @@ export const handleRequest = ({
   );
 };
 
-function getData(object: any, row: Object[], agg: string, dataList: Object[][], ndx: number) {
+function getData(
+  object: any,
+  row: Object[],
+  agg: string,
+  dataList: Object[][],
+  ndx: number,
+  urlToAnotherDashboard: string | null
+) {
   try {
     let buckets = object['buckets']; // json array
     if (buckets) {
@@ -244,10 +317,16 @@ function getData(object: any, row: Object[], agg: string, dataList: Object[][], 
         for (let property in bucket) {
           if (bucket[property]['buckets']) {
             lastBucket = false;
-            getData(bucket[property], newRow, property, dataList, ndx + 1);
+            getData(bucket[property], newRow, property, dataList, ndx + 1, urlToAnotherDashboard);
           }
         }
         if (lastBucket) {
+          if (urlToAnotherDashboard) {
+            let obj = {
+              urlToAnotherDashboard,
+            };
+            newRow.push(JSON.stringify(obj));
+          }
           for (let property in bucket) {
             let value = bucket[property]['value'];
             if (value) {
@@ -271,7 +350,7 @@ function getDataList(dataList: any[]): any {
   if (dataList) {
     if (dataList.length > 0) {
       let result: any[] = [];
-      dataList.forEach(elem => {
+      dataList.forEach((elem) => {
         let dataListArr: any[] = elem;
         let firstPart: any = {};
         for (let i = 0; i < dataListArr.length - 1; i++) {
@@ -279,16 +358,15 @@ function getDataList(dataList: any[]): any {
           let key = Object.keys(e)[0];
           let value = e[key];
           firstPart[key] = value;
-        };
+        }
         let dataListParsed = JSON.parse(dataListArr[dataListArr.length - 1]);
-        if(dataListParsed.conditionalTerms && dataListParsed.conditionalTerms.length > 0)
-        {
+        if (dataListParsed.conditionalTerms && dataListParsed.conditionalTerms.length > 0) {
           let lastElement = dataListParsed.conditionalTerms[0];
           for (let i = 0; i < lastElement.length; i++) {
-            result.push({ ...firstPart, ...lastElement[i] })
+            result.push({ ...firstPart, ...lastElement[i] });
           }
         }
-      })
+      });
       // if(result.length > 0) {
       //     let keys = Object.keys(result[0]);
       //     for(let i = 0; i < keys.length; i ++) {
@@ -301,8 +379,7 @@ function getDataList(dataList: any[]): any {
       //     })
       // }
       return result;
-    }
-    else {
+    } else {
       return [];
     }
   }

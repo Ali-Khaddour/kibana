@@ -26,4 +26,5 @@ export interface TableVisParams {
   percentageCol: string;
   autoFitRowToContent?: boolean;
   row?: boolean;
+  urlToAnotherDashboardVis: string;
 }

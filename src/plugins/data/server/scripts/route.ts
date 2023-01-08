@@ -20,29 +20,29 @@ export function registerScriptsRoute(router: IRouter) {
   );
 
   router.get(
-    { 
-      path: '/api/vis_conditions/{id}', 
+    {
+      path: '/api/vis_conditions/{id}',
       validate: {
         params: schema.any(),
       },
     },
     async (context, request, response) => {
       const data = await context.core.elasticsearch.client.asInternalUser.search({
-        index: "vis_conditions",
+        index: 'vis_conditions',
         body: {
-          "query": {
-            "bool": {
-              "filter": [
+          query: {
+            bool: {
+              filter: [
                 {
-                  "term": {
-                    "_id": request.params.id
-                  }
-                }
-              ]
-            }
+                  term: {
+                    _id: request.params.id,
+                  },
+                },
+              ],
+            },
           },
-          "size": 1
-        }
+          size: 1,
+        },
       });
       return response.ok({
         body: data,
@@ -60,6 +60,7 @@ export function registerScriptsRoute(router: IRouter) {
           start: schema.any(),
           end: schema.any(),
           viscondition: schema.any(),
+          urlToAnotherDashboard: schema.any(),
         }),
       },
     },
@@ -78,7 +79,7 @@ export function registerScriptsRoute(router: IRouter) {
           statusCode: e.status | 500,
         });
       }
-  
+
       return response.ok({
         body: {
           message: 'created successfully.',
@@ -87,5 +88,3 @@ export function registerScriptsRoute(router: IRouter) {
     }
   );
 }
-
-

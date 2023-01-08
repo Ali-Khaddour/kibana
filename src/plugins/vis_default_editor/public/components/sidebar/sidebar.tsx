@@ -96,58 +96,75 @@ function DefaultEditorSideBarComponent({
   );
 
   const [conditions, setConditions] = useState({
-    start: "",
-    end: ""
-  })
+    start: '',
+    end: '',
+  });
 
-  const [isConditionEnabled, setIsConditionEnabled] = useState(false)
+  const [isConditionEnabled, setIsConditionEnabled] = useState(false);
 
   const changeConditions = (conditions: any) => {
-    let visId = ''
+    let visId = '';
     if (vis.id) {
-      visId = vis.id + '_'
+      visId = vis.id + '_';
     }
-    window.sessionStorage.setItem(visId + 'conditions', JSON.stringify(conditions))
+    window.sessionStorage.setItem(visId + 'conditions', JSON.stringify(conditions));
     setConditions(conditions);
-    setDirty(true)
-  }
+    setDirty(true);
+  };
 
   const enableConditions = () => {
-    let visId = ''
+    let visId = '';
     if (vis.id) {
-      visId = vis.id + '_'
+      visId = vis.id + '_';
     }
-    window.sessionStorage.setItem(visId + 'isConditionEnabled', JSON.stringify(!isConditionEnabled))
-    setIsConditionEnabled(!isConditionEnabled)
-    setDirty(true)
-  }
+    window.sessionStorage.setItem(
+      visId + 'isConditionEnabled',
+      JSON.stringify(!isConditionEnabled)
+    );
+    setIsConditionEnabled(!isConditionEnabled);
+    setDirty(true);
+  };
 
   const changeEnableConditions = (val: boolean) => {
-    let visId = ''
+    let visId = '';
     if (vis.id) {
-      visId = vis.id + '_'
+      visId = vis.id + '_';
     }
-    window.sessionStorage.setItem(visId + 'isConditionEnabled', JSON.stringify(val))
-    setIsConditionEnabled(val)
-  }
+    window.sessionStorage.setItem(visId + 'isConditionEnabled', JSON.stringify(val));
+    setIsConditionEnabled(val);
+  };
 
   const applyCreateQuery = async () => {
-    let tmpMetrics: any[] = []
-    let visId = ''
+    let tmpMetrics: any[] = [];
+    let visId = '';
     if (vis.id) {
-      visId = vis.id + '_'
+      visId = vis.id + '_';
     }
-    let tmpConditions = window.sessionStorage.getItem(visId + 'conditions')
-    let conditionsToWuery = conditions
+    let tmpConditions = window.sessionStorage.getItem(visId + 'conditions');
+    let conditionsToWuery = conditions;
     if (tmpConditions) {
-      conditionsToWuery = JSON.parse(tmpConditions)
+      conditionsToWuery = JSON.parse(tmpConditions);
     }
-    await createQuery(vis.data.indexPattern?.timeFieldName, vis.data.indexPattern?.fields, conditionsToWuery, tmpMetrics, JSON.parse(JSON.stringify(state.data.aggs?.aggs)), visId);
-  }
+    await createQuery(
+      vis.data.indexPattern?.timeFieldName,
+      vis.data.indexPattern?.fields,
+      conditionsToWuery,
+      tmpMetrics,
+      JSON.parse(JSON.stringify(state.data.aggs?.aggs)),
+      visId
+    );
+  };
 
   const applyChanges = useCallback(async () => {
     await applyCreateQuery();
-
+    let visId = '';
+    if (vis.id) {
+      visId = vis.id + '_';
+    }
+    window.sessionStorage.setItem(
+      visId + 'urlToAnotherDashboard',
+      optionTabProps.vis?.params?.urlToAnotherDashboardVis
+    );
     if (formState.invalid || !isDirty) {
       setTouched(true);
       return;
@@ -180,50 +197,63 @@ function DefaultEditorSideBarComponent({
 
   useEffect(() => {
     async function prepareData() {
-      let visId = window.sessionStorage.getItem('visId')
+      let visId = window.sessionStorage.getItem('visId');
       if (!visId) {
         if (vis.id) {
-          visId = vis.id
+          visId = vis.id;
           // get conditions from ES
           await getConditionsFromES(vis.id);
+        } else {
+          visId = 'not_set';
         }
-        else {
-          visId = 'not_set'
-        }
-        window.sessionStorage.setItem('visId', visId)
+        window.sessionStorage.setItem('visId', visId);
       }
       if (visId !== vis.id && vis.id) {
         // changed the visualization
         // get new conditions from ES
 
         getConditionsFromES(vis.id);
-        window.sessionStorage.setItem('visId', vis.id)
+        window.sessionStorage.setItem('visId', vis.id);
         visId = vis.id;
-      }
-      else if(visId !== vis.id && !vis.id) {
+      } else if (visId !== vis.id && !vis.id) {
         window.sessionStorage.setItem('visId', '');
         visId = '';
       }
-      let isConditionEnabledTmp = window.sessionStorage.getItem((visId == 'not_set' ? '' : visId + '_') + 'isConditionEnabled')
+      let isConditionEnabledTmp = window.sessionStorage.getItem(
+        (visId == 'not_set' ? '' : visId + '_') + 'isConditionEnabled'
+      );
       if (isConditionEnabledTmp) {
-        setIsConditionEnabled(JSON.parse(isConditionEnabledTmp))
+        setIsConditionEnabled(JSON.parse(isConditionEnabledTmp));
+      } else {
+        window.sessionStorage.setItem(
+          (visId == 'not_set' ? '' : visId + '_') + 'isConditionEnabled',
+          'false'
+        );
       }
-      else {
-        window.sessionStorage.setItem((visId == 'not_set' ? '' : visId + '_') + 'isConditionEnabled', 'false')
-      }
-      let conditionsTmp = window.sessionStorage.getItem((visId == 'not_set' ? '' : visId + '_') + 'conditions')
+      let conditionsTmp = window.sessionStorage.getItem(
+        (visId == 'not_set' ? '' : visId + '_') + 'conditions'
+      );
       if (conditionsTmp) {
-        setConditions(JSON.parse(conditionsTmp))
-      }
-      else {
-        window.sessionStorage.setItem((visId == 'not_set' ? '' : visId + '_') + 'conditions', JSON.stringify(conditions))
+        setConditions(JSON.parse(conditionsTmp));
+      } else {
+        window.sessionStorage.setItem(
+          (visId == 'not_set' ? '' : visId + '_') + 'conditions',
+          JSON.stringify(conditions)
+        );
       }
       if (conditionsTmp) {
-        await createQuery(vis.data.indexPattern?.timeFieldName, vis.data.indexPattern?.fields, JSON.parse(conditionsTmp), [], JSON.parse(JSON.stringify(state.data.aggs?.aggs)), (visId == 'not_set' ? '' : visId + '_'))
+        await createQuery(
+          vis.data.indexPattern?.timeFieldName,
+          vis.data.indexPattern?.fields,
+          JSON.parse(conditionsTmp),
+          [],
+          JSON.parse(JSON.stringify(state.data.aggs?.aggs)),
+          visId == 'not_set' ? '' : visId + '_'
+        );
       }
       applyChanges();
     }
-    prepareData()
+    prepareData();
     // window.sessionStorage.setItem('id')
   }, []);
 
@@ -243,17 +273,17 @@ function DefaultEditorSideBarComponent({
   }, [resetValidity, eventEmitter]);
 
   const getConditionsFromES = async (visId: string) => {
-    const response = await fetch(`/api/vis_conditions/${visId}`)
+    const response = await fetch(`/api/vis_conditions/${visId}`);
     const data = await response.text();
-    let hits = JSON.parse(data).body.hits.hits
+    let hits = JSON.parse(data).body.hits.hits;
     if (hits.length > 0) {
-      changeEnableConditions(hits[0]._source.enabled)
+      changeEnableConditions(hits[0]._source.enabled);
       changeConditions({
         start: hits[0]._source.start,
-        end: hits[0]._source.end
-      })
+        end: hits[0]._source.end,
+      });
     }
-  }
+  };
 
   // subscribe on external vis changes using browser history, for example press back button
   useEffect(() => {
@@ -287,6 +317,9 @@ function DefaultEditorSideBarComponent({
     setTouched,
   };
 
+  useEffect(() => {
+    applyChanges();
+  }, [optionTabProps.vis?.params?.urlToAnotherDashboardVis]);
 
   return (
     <>
@@ -319,8 +352,9 @@ function DefaultEditorSideBarComponent({
             {optionTabs.map(({ editor: Editor, name, isSelected = false }) => (
               <div
                 key={name}
-                className={`visEditorSidebar__config ${isSelected ? '' : 'visEditorSidebar__config-isHidden'
-                  }`}
+                className={`visEditorSidebar__config ${
+                  isSelected ? '' : 'visEditorSidebar__config-isHidden'
+                }`}
               >
                 <Editor
                   isTabSelected={isSelected}

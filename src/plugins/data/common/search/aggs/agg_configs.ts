@@ -82,11 +82,12 @@ export class AggConfigs {
   public timeFields?: string[];
   public forceNow?: Date;
   public hierarchical?: boolean = false;
-  isConditionEnabled: boolean; 
-  conditions : {
-    start: string,
-    end: string
-  }
+  isConditionEnabled: boolean;
+  conditions: {
+    start: string;
+    end: string;
+  };
+  urlToAnotherDashboardVis: any;
   visCondition: string;
 
   private readonly typesRegistry: AggTypesRegistryStart;
@@ -110,9 +111,10 @@ export class AggConfigs {
     this.isConditionEnabled = false;
     this.conditions = {
       start: '',
-      end: ''
-    }
-    this.visCondition = ''
+      end: '',
+    };
+    this.urlToAnotherDashboardVis = '';
+    this.visCondition = '';
   }
 
   setTimeFields(timeFields: string[] | undefined) {
@@ -225,12 +227,16 @@ export class AggConfigs {
     this.isConditionEnabled = true;
   }
 
-  setConditions(val: {start: string, end: string}) {
+  setConditions(val: { start: string; end: string }) {
     this.conditions = val;
   }
 
   setVisConditions(val: string) {
     this.visCondition = val;
+  }
+
+  setUrlToAnotherDashboardVis(val: string) {
+    this.urlToAnotherDashboardVis = val;
   }
 
   toDsl(): Record<string, any> {
@@ -262,12 +268,11 @@ export class AggConfigs {
       (config) => 'splitForTimeShift' in config.type && config.type.splitForTimeShift(config, this)
     );
     let lastDSL: any;
-    let lastID: string = "0";
+    let lastID: string = '0';
     requestAggs.forEach(async (config: AggConfig, i: number, list) => {
-      if(this.isConditionEnabled && config.schema === 'metric') {
+      if (this.isConditionEnabled && config.schema === 'metric') {
         // ignore the metric
-      }
-      else {
+      } else {
         if (!dslLvlCursor) {
           // start at the top level
           dslLvlCursor = dslTopLvl;
@@ -320,13 +325,12 @@ export class AggConfigs {
           });
         }
         // }
-        lastDSL = dslLvlCursor
-        lastID = config.id
+        lastDSL = dslLvlCursor;
+        lastID = config.id;
       }
     });
-    
-    if(lastDSL && this.isConditionEnabled && this.visCondition)
-    {
+
+    if (lastDSL && this.isConditionEnabled && this.visCondition) {
       lastDSL[lastID].aggs = JSON.parse(this.visCondition);
     }
     removeParentAggs(dslTopLvl);

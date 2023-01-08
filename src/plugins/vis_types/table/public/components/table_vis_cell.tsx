@@ -17,8 +17,25 @@ export const createTableVisCell =
   ({ rowIndex, columnId }: EuiDataGridCellValueElementProps) => {
     const rowValue = rows[rowIndex][columnId];
     const column = formattedColumns[columnId];
-    const content = column.formatter.convert(rowValue, 'html');
+    let content = null;
 
+    if (columnId == 'exitGeofences' || columnId == 'enterGeofence') {
+      content = `${rowValue}`;
+    } else if (columnId == 'urlToAnotherDashboard') {
+      if (rowValue) {
+        let url = rowValue.replace('{startTime}', `'${rows[rowIndex]['startTime']}'`);
+        url = url.replace('{endTime}', `'${rows[rowIndex]['endTime']}'`);
+        return (
+          <a target="_blank" href={url}>
+            External Dashboard
+          </a>
+        );
+        alert(JSON.stringify(content));
+        // content = `${url}`;
+      }
+    } else {
+      content = column.formatter.convert(rowValue, 'html');
+    }
     const cellContent = (
       <div
         /*

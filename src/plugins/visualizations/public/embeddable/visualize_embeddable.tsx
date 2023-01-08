@@ -201,15 +201,13 @@ export class VisualizeEmbeddable
     let columns = [];
     // first add the buckets
     for (let i = 0; i < aggs.length; i++) {
-      if(aggs[i].schema === 'metric')
-        continue;
+      if (aggs[i].schema === 'metric') continue;
       let key = aggs[i].id.toString();
       let name = aggs[i].params?.customLabel;
       if (!name) {
-        let json = JSON.parse(JSON.stringify(aggs[i]))
-        name = ''
-        if(aggs[i].schema === 'metric' && json.type)
-          name = json.type + ' '
+        let json = JSON.parse(JSON.stringify(aggs[i]));
+        name = '';
+        if (aggs[i].schema === 'metric' && json.type) name = json.type + ' ';
         name += aggs[i].params?.field?.spec?.name || '-';
       }
       let type = aggs[i].params?.field?.spec?.type;
@@ -225,15 +223,13 @@ export class VisualizeEmbeddable
     }
     // add the buckets
     for (let i = 0; i < aggs.length; i++) {
-      if(aggs[i].schema !== 'metric')
-        continue;
+      if (aggs[i].schema !== 'metric') continue;
       let key = aggs[i].id.toString();
       let name = aggs[i].params?.customLabel;
       if (!name) {
-        let json = JSON.parse(JSON.stringify(aggs[i]))
-        name = ''
-        if(aggs[i].schema === 'metric' && json.type)
-          name = json.type + ' '
+        let json = JSON.parse(JSON.stringify(aggs[i]));
+        name = '';
+        if (aggs[i].schema === 'metric' && json.type) name = json.type + ' ';
         name += aggs[i].params?.field?.spec?.name || '-';
       }
       let type = aggs[i].params?.field?.spec?.type;
@@ -266,7 +262,7 @@ export class VisualizeEmbeddable
     const request = JSON.stringify(adapters.requests?.getRequests()[0].json);
     const href = window.location.href;
     // const id = href.split('#')[1].split('/')[2].split('?')[0];
-    const id = this.vis.id || ''
+    const id = this.vis.id || '';
     const index = this.vis.data.indexPattern?.title;
 
     localStorage.setItem('index', index ? index : '');
@@ -275,10 +271,10 @@ export class VisualizeEmbeddable
     localStorage.setItem('request', request);
     localStorage.setItem('columns', columns);
     localStorage.setItem('reportTimeField', this.vis.data.indexPattern?.timeFieldName || '');
-    const linkWithSpaceRegExp = /\/s\/(.*)\/app/
-    const match = href.match(linkWithSpaceRegExp)
-    const linkWithSpace = match? match[0] : '/app'
-    if(id) {
+    const linkWithSpaceRegExp = /\/s\/(.*)\/app/;
+    const match = href.match(linkWithSpaceRegExp);
+    const linkWithSpace = match ? match[0] : '/app';
+    if (id) {
       history.push({
         pathname: `${linkWithSpace}/scheduledReports/create`,
       });
